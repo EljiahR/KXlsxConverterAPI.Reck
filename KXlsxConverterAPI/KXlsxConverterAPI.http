@@ -1,0 +1,6 @@
+@KXlsxConverterAPI_HostAddress = http://localhost:5032
+
+GET {{KXlsxConverterAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
