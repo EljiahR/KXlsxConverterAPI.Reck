@@ -1,5 +1,17 @@
-var builder = WebApplication.CreateBuilder(args);
+using KXlsxConverterAPI.Data;
+using KXlsxConverterAPI.Models;
+using KXlsxConverterAPI.Repositories;
+using KXlsxConverterAPI.Services;
+using Microsoft.EntityFrameworkCore;
 
+var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
+
+services.AddDbContext<EmployeeContext>(options =>
+    options.UseSqlite("Data Source=employees.db"),ServiceLifetime.Scoped);
+
+services.AddScoped<IGenericEFRepository<Employee>, GenericEFRepository<Employee, EmployeeContext>>();
+services.AddScoped<IEmployeeService, EmployeeService>();
 // Add services to the container.
 
 builder.Services.AddControllers();
