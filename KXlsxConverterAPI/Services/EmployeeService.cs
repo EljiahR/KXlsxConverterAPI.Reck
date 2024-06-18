@@ -13,27 +13,27 @@ namespace KXlsxConverterAPI.Services
 
         public void AddEmployee(Employee employee)
         {
-            throw new NotImplementedException();
+            _repository.Add(employee);
         }
 
         public void DeleteEmployee(Employee employee)
         {
-            throw new NotImplementedException();
+            _repository.Delete(employee);
         }
 
         public IEnumerable<Employee> GetAllEmployees()
         {
-            throw new NotImplementedException();
+            return _repository.GetAll();
         }
 
         public Employee GetEmployeeById(int id)
         {
-            throw new NotImplementedException();
+            return _repository.GetById(id);
         }
 
         public void UpdateEmployee(Employee employee)
         {
-            throw new NotImplementedException();
+            _repository.Update(employee);
         }
     }
 }
