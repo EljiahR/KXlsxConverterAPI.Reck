@@ -1,4 +1,5 @@
-﻿using KXlsxConverterAPI.Models;
+﻿using KXlsxConverterAPI.Helpers;
+using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,8 +34,20 @@ public class EmployeeController : Controller
         }
         catch (Exception ex)
         {
-            return BadRequest();
+            return BadRequest("Error with employee format");
         }
+    }
 
+    [HttpPost]
+    [Route("Dailies")]
+    public IActionResult PostSchedule(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded or file empty");
+        }
+        var fixedSchedule = XlsxConverter.ConvertXlsx(file);
+
+        return Ok(fixedSchedule);
     }
 }
