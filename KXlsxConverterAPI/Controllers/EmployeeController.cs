@@ -46,11 +46,12 @@ public class EmployeeController : Controller
         {
             return BadRequest("No file uploaded or file empty");
         }
-        if(!string.Equals(System.IO.Path.GetExtension(file.FileName), "xlsx"))
+        if(!string.Equals(System.IO.Path.GetExtension(file.FileName), ".xlsx"))
         {
-            return BadRequest("Wrong file type uploaded");
+            return BadRequest($"Wrong file type uploaded, {System.IO.Path.GetExtension(file.FileName)} not accepted");
         }
-        var fixedSchedule = XlsxConverter.ConvertXlsx(file);
+        var allEmployees = _service.GetAllEmployees();
+        var fixedSchedule = XlsxConverter.ConvertXlsx(file, allEmployees);
 
         return Ok(fixedSchedule);
     }
