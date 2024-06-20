@@ -1,6 +1,6 @@
 ﻿namespace KXlsxConverterAPI.Repositories;
 
-public interface IGenericEFRepository<TEntity>
+public interface IGenericRepository<TEntity>
 {
     TEntity GetById(int id);
     IEnumerable<TEntity> GetAll();

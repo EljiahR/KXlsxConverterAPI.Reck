@@ -10,7 +10,7 @@ var services = builder.Services;
 services.AddDbContext<EmployeeContext>(options =>
     options.UseSqlite("Data Source=employees.db"),ServiceLifetime.Scoped);
 
-services.AddScoped<IGenericEFRepository<Employee>, GenericEFRepository<Employee, EmployeeContext>>();
+services.AddScoped<IGenericRepository<Employee>, EmployeeRepository>();
 services.AddScoped<IEmployeeService, EmployeeService>();
 // Add services to the container.
 

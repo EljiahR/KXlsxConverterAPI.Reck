@@ -2,13 +2,12 @@
 
 namespace KXlsxConverterAPI.Repositories;
 
-public class GenericEFRepository<TEntity, TContext> : IGenericEFRepository<TEntity>
+public class GenericRepository<TEntity> : IGenericRepository<TEntity>
     where TEntity : class
-    where TContext : DbContext
 {
-    private readonly TContext _context;
-    private readonly DbSet<TEntity> _dbSet;
-    public GenericEFRepository(TContext context)
+    protected readonly DbContext _context;
+    protected readonly DbSet<TEntity> _dbSet;
+    public GenericRepository(DbContext context)
     {
         _context = context;
         _dbSet = _context.Set<TEntity>();

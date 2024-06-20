@@ -20,4 +20,6 @@ public class Employee
 
     // For employees either not in front-end and can be called up or front-end employees that are occasionally scheduled in different departments
     public bool IsACallUp { get; set; } = true;
+    public int Division { get; set; } = 0;
+    public int StoreNumber { get; set; } = 0;
 }

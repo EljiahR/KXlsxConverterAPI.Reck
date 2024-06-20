@@ -39,8 +39,8 @@ public class EmployeeController : Controller
     }
 
     [HttpPost]
-    [Route("Dailies")]
-    public IActionResult PostSchedule(IFormFile file)
+    [Route("Dailies/{division}/{storeNumber}")]
+    public IActionResult PostSchedule(IFormFile file, int division, int storeNumber)
     {
         if (file == null || file.Length == 0)
         {
