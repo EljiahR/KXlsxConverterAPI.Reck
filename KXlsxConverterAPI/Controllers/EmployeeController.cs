@@ -50,7 +50,8 @@ public class EmployeeController : Controller
         {
             return BadRequest($"Wrong file type uploaded, {System.IO.Path.GetExtension(file.FileName)} not accepted");
         }
-        var allEmployees = _service.GetAllEmployees();
+        
+        var allEmployees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber); // Ok if empty
         var fixedSchedule = XlsxConverter.ConvertXlsx(file, allEmployees);
 
         return Ok(fixedSchedule);
