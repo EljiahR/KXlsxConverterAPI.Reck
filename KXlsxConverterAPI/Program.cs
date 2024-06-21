@@ -7,17 +7,17 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
+// Add services to the container.
 services.AddDbContext<EmployeeContext>(options =>
     options.UseSqlite("Data Source=employees.db"),ServiceLifetime.Scoped);
 
-services.AddScoped<IGenericRepository<Employee>, EmployeeRepository>();
+services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 services.AddScoped<IEmployeeService, EmployeeService>();
-// Add services to the container.
 
-builder.Services.AddControllers();
+services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
 
 var app = builder.Build();
 
