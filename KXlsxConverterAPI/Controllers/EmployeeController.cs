@@ -1,5 +1,6 @@
 ﻿using KXlsxConverterAPI.Helpers;
 using KXlsxConverterAPI.Models;
+using KXlsxConverterAPI.Models.ScheduleModels;
 using KXlsxConverterAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -41,7 +42,7 @@ public class EmployeeController : Controller
 
     [HttpPost]
     [Route("Dailies/{division}/{storeNumber}")]
-    public IActionResult PostSchedule(IFormFile file, int division, int storeNumber)
+    public async Task<IActionResult> PostSchedule(IFormFile file, int division, int storeNumber)
     {
         if (file == null || file.Length == 0)
         {
@@ -53,7 +54,13 @@ public class EmployeeController : Controller
         }
         
         var allEmployees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber); // Ok if empty
-        var fixedSchedule = XlsxConverter.ConvertXlsx(file, allEmployees);
+        List<WeekdaySchedule> fixedSchedule = new();
+        using (var stream = new MemoryStream())
+        {
+            await file.CopyToAsync(stream);
+            stream.Position = 0;
+            fixedSchedule = XlsxConverter.ConvertXlsx(stream, allEmployees);
+        }
 
         return Ok(fixedSchedule);
     }
