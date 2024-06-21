@@ -3,9 +3,9 @@
 public class Employee
 {
     public int EmployeeId { get; set; } // Not based on any actual corporate based IDs
-    public string FirstName { get; set; } // Name registered in MyTime 
+    public string FirstName { get; set; } = string.Empty; // Name registered in MyTime 
     public string? PreferredFirstName { get; set; } // Name employee prefers if there is one
-    public string LastName { get; set; } // Don't make me explain it
+    public string LastName { get; set; } = string.Empty; // Don't make me explain it
     public DateTime? Birthday { get; set; } // Only Year, Month, and Day necessary
     public int PreferredNumberOfBreaks { get; set; } = 2; // Preferred number of break if working >= 6 hours, should default to 2
 

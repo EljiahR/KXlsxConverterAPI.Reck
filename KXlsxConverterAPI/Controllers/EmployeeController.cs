@@ -34,6 +34,7 @@ public class EmployeeController : Controller
         }
         catch (Exception ex)
         {
+            Console.Error.WriteLine(ex);
             return BadRequest("Error with employee format");
         }
     }
