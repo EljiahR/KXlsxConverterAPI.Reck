@@ -1,6 +1,7 @@
 ﻿using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Models.ScheduleModels;
 using OfficeOpenXml;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace KXlsxConverterAPI.Helpers
@@ -12,14 +13,18 @@ namespace KXlsxConverterAPI.Helpers
         private static Regex nameRegex = new Regex(@"^[a-zA-Z]+,\s[a-zA-Z]+");
         
         private List<WeekdaySchedule> days;
+        private Dictionary<int, DateTime> timeIndex;
         private WeekdaySchedule? currentDay;
         private ExcelWorksheet? ws;
+        private int rowCount = 0;
+        private int colCount = 0;
 
         private static int nameColumnPos = 2;
 
         public XlsxConverter()
         {
             days = new();
+            timeIndex = new();
         }
         public List<WeekdaySchedule> ConvertXlsx(Stream stream, IEnumerable<Employee> storeEmployees)
         {
@@ -31,8 +36,8 @@ namespace KXlsxConverterAPI.Helpers
                 {
                     throw new NullReferenceException("Worksheet is empty");
                 }
-                int rowCount = ws.Dimension.Rows;
-                int colCount = ws.Dimension.Columns;
+                rowCount = ws.Dimension.Rows;
+                colCount = ws.Dimension.Columns;
 
                 bool dayFound = false; // For tracking when in a valid range for shifts
                 WeekdaySchedule? currentDay = null;
@@ -45,8 +50,13 @@ namespace KXlsxConverterAPI.Helpers
                             DateTime newWeekday = DateTime.Parse(ws.Cells[row, 1].Value?.ToString() ?? "");
                             currentDay = new WeekdaySchedule(newWeekday.ToString("dddd"), newWeekday);
                             days.Add(currentDay);
+                            
+                            // I've had troubles with the columns for the times not being consistant
+                            // so I've implemented a method to figure it out for the rest of the class
+                            if (days.Count == 1) MapTimeIndexes(row + 1);
                             break;
                         case CurrentSection.FoundEmployee when dayFound:
+                            //ParseAndAddEmployee(row);
                             break;
                         case CurrentSection.FoundEnd:
                             dayFound = false;
@@ -73,6 +83,23 @@ namespace KXlsxConverterAPI.Helpers
             else if (dayFound && nameRegex.IsMatch(ws.Cells[row, nameColumnPos].Value?.ToString() ?? ""))
                 return CurrentSection.FoundEmployee;
             return CurrentSection.FoundNothing;
+        }
+
+        private void ParseAndAddEmployee(int row)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void MapTimeIndexes(int row)
+        {
+            for (int col = 1; col <= colCount; col++)
+            {
+                double dateNum;
+                if (double.TryParse(ws.Cells[row, col].Value?.ToString(), out dateNum))
+                {
+                    timeIndex.Add(col, DateTime.FromOADate(dateNum));
+                }
+            }
         }
     }
 }
