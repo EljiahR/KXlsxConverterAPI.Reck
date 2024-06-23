@@ -12,8 +12,17 @@ namespace KXlsxConverterAPI.Helpers
         private static Regex dayOfWeekRegex = new Regex(@"^[A-Z]{1}[a-z]{2}\s\d{2}\/\d{2}\/\d{4}$");
         private static Regex nameRegex = new Regex(@"^[a-zA-Z]+,\s[a-zA-Z]+");
         
-        private List<WeekdaySchedule> days;
-        private Dictionary<int, DateTime> timeIndex;
+        private List<WeekdaySchedule> days; // New list of days to be built as rows are checked
+        
+        //Column numbers are occasionally different due to random extra merged columns, so these next few variables are for fixing that
+        private Dictionary<int, DateTime> timeIndex; // Index for what time each column represents
+        private int locationColumn = 0;
+        private int nameColumn = 0;
+        private int jobColumn = 0;
+        private int startColumn = 0;
+        private int endColumn = 0;
+        
+        
         private WeekdaySchedule? currentDay;
         private ExcelWorksheet? ws;
         private int rowCount = 0;
@@ -92,13 +101,68 @@ namespace KXlsxConverterAPI.Helpers
 
         private void MapTimeIndexes(int row)
         {
+            bool foundTimes = false;
+            bool previousCellWasMerged = false;
+            DateTime lastTimeFound = new DateTime(); // Cannot be null due to order of cell checks
             for (int col = 1; col <= colCount; col++)
             {
+                // Checking for 15 minute increments after getting to the time columns which are always null
+                // Necessary to check row below as each hour label is merged
+                if(foundTimes && ws.Cells[row, col].Value is null)
+                {
+                    // Columns are sometimes merged causing unneeded stress trying to working around it
+                    if (ws.Cells[row + 1, col].Merge)
+                    {
+                        if (previousCellWasMerged)
+                        {
+                            previousCellWasMerged = false;
+                            continue;
+                        }
+                        else
+                        {
+                            previousCellWasMerged = true;
+                            lastTimeFound = lastTimeFound.AddMinutes(15);
+                            timeIndex.Add(col, lastTimeFound);
+                        }
+                    } else
+                    {
+                        previousCellWasMerged = false;
+                        lastTimeFound = lastTimeFound.AddMinutes(15);
+                        timeIndex.Add(col, lastTimeFound);
+                    }
+                }
+                
+                if(locationColumn == 0 && ws.Cells[row, col].Value?.ToString() == "Location")
+                {
+                    locationColumn = col;
+                    continue;
+                }
+                if (nameColumn == 0 && ws.Cells[row, col].Value?.ToString() == "Name") { 
+                    nameColumn = col; 
+                    continue;
+                }
+                if (jobColumn == 0 && ws.Cells[row, col].Value?.ToString() == "Job") { 
+                    jobColumn = col;
+                    continue;
+                }
+                if (startColumn == 0 && ws.Cells[row, col].Value?.ToString() == "Start") { 
+                    startColumn = col;
+                    continue;
+                }
+                if (endColumn == 0 && ws.Cells[row, col].Value?.ToString() == "End") 
+                {
+                    endColumn = col;
+                    continue;
+                }
+
                 double dateNum;
                 if (double.TryParse(ws.Cells[row, col].Value?.ToString(), out dateNum))
                 {
-                    timeIndex.Add(col, DateTime.FromOADate(dateNum));
+                    lastTimeFound = DateTime.FromOADate(dateNum);
+                    timeIndex.Add(col, lastTimeFound);
+                    previousCellWasMerged = ws.Cells[row + 1, col].Merge;
                 }
+                if (!foundTimes && timeIndex.Count > 0) foundTimes = true;
             }
         }
     }
