@@ -15,19 +15,20 @@ public class XlsxConverter
 
     //Column numbers are occasionally different due to random extra merged columns, so these next few variables are for fixing that
     private Dictionary<int, DateTime> timeIndex; // Index for what time each column represents
-    private int locationColumn = 0;
     private int nameColumn = 0;
+    // Last three columns may not be necessary depending on how reliable the jobkey is with the time columns
+    private int locationColumn = 0;
     private int jobColumn = 0;
-    private int startColumn = 0;
+    private int startColumn = 0; 
     private int endColumn = 0;
+
+    private string jobCellFillRgb = "FFC0C0C0"; // Tried the index and that didn't work sooo Rgb
 
 
     private WeekdaySchedule? currentDay;
     private ExcelWorksheet? ws;
     private int rowCount = 0;
     private int colCount = 0;
-
-    private static int nameColumnPos = 2;
 
     public XlsxConverter()
     {
@@ -63,7 +64,7 @@ public class XlsxConverter
                         if (days.Count == 1) MapTimeIndexes(row + 1);
                         break;
                     case CurrentSection.FoundEmployee when dayFound:
-                        //ParseAndAddEmployee(row);
+                        ParseEmployeeRow(row);
                         break;
                     case CurrentSection.FoundEnd:
                         dayFound = false;
@@ -86,7 +87,7 @@ public class XlsxConverter
             return CurrentSection.FoundNewDay;
         else if (dayFound && ws.Cells[row, 1].Value?.ToString() == "Forcasted")
             return CurrentSection.FoundEnd;
-        else if (dayFound && nameRegex.IsMatch(ws.Cells[row, nameColumnPos].Value?.ToString() ?? ""))
+        else if (dayFound && nameRegex.IsMatch(ws.Cells[row, nameColumn].Value?.ToString() ?? ""))
             return CurrentSection.FoundEmployee;
         return CurrentSection.FoundNothing;
     }
@@ -95,7 +96,16 @@ public class XlsxConverter
     {
         Shift newShift = new Shift();
         string firstName, lastName;
+        string? fillColor;
         (firstName, lastName) = StringFixer.GetFirstAndLastName(ws.Cells[row, nameColumn].Value?.ToString());
+        for(int col = 1; col <= colCount; col++)
+        {
+            fillColor = ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
+            if(fillColor == jobCellFillRgb)
+            {
+                //TODO finish this
+            }
+        }
     }
 
     private void MapTimeIndexes(int row)
