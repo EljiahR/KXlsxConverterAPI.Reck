@@ -93,7 +93,9 @@ public class XlsxConverter
 
     private void ParseEmployeeRow(int row)
     {
-        throw new NotImplementedException();
+        Shift newShift = new Shift();
+        string firstName, lastName;
+        (firstName, lastName) = StringFixer.GetFirstAndLastName(ws.Cells[row, nameColumn].Value?.ToString());
     }
 
     private void MapTimeIndexes(int row)
