@@ -19,23 +19,23 @@ public class XlsxConverter
     // Last three columns may not be necessary depending on how reliable the jobkey is with the time columns
     private int locationColumn = 0;
     private int jobColumn = 0;
-    private int startColumn = 0; 
+    private int startColumn = 0;
     private int endColumn = 0;
-
-    private string jobCellFillRgb = "FFC0C0C0"; // Tried the index and that didn't work sooo Rgb
-
 
     private WeekdaySchedule? currentDay;
     private ExcelWorksheet? ws;
     private int rowCount = 0;
     private int colCount = 0;
 
-    public XlsxConverter()
+    private IEnumerable<Employee> _storeEmployees;
+
+    public XlsxConverter(IEnumerable<Employee> storeEmployees)
     {
         days = new();
         timeIndex = new();
+        _storeEmployees = storeEmployees;
     }
-    public List<WeekdaySchedule> ConvertXlsx(Stream stream, IEnumerable<Employee> storeEmployees)
+    public List<WeekdaySchedule> ConvertXlsx(Stream stream)
     {
 
         using (ExcelPackage package = new ExcelPackage(stream))
@@ -96,15 +96,58 @@ public class XlsxConverter
     {
         Shift newShift = new Shift();
         string firstName, lastName;
-        string? fillColor;
+        
         (firstName, lastName) = StringFixer.GetFirstAndLastName(ws.Cells[row, nameColumn].Value?.ToString());
-        for(int col = 1; col <= colCount; col++)
+        newShift.FirstName = firstName;
+        newShift.LastName = lastName;
+        // Try to match employee from database here
+        Employee? employeePreferences = _storeEmployees
+            .Where(e => String.Equals(firstName, e.FirstName, StringComparison.OrdinalIgnoreCase)
+                && String.Equals(lastName, e.LastName,StringComparison.OrdinalIgnoreCase))
+            .First();
+        if(employeePreferences == null)
+        {
+            employeePreferences = 
+        }
+
+        string? jobKey = "";
+        string? fillColor;
+        int jobStartColumn = 0;
+        // Finding beginning of shift  
+        for (int col = 1; col <= colCount; col++)
         {
             fillColor = ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
-            if(fillColor == jobCellFillRgb)
+            if(fillColor == JobFinder.jobCellFillRgb)
             {
-                //TODO finish this
+                jobKey = ws.Cells[row, col].Value?.ToString();
+                jobStartColumn = col;
+                break;
             }
+        }
+        // Throwing error if jobStartColumn was never found
+        if(jobStartColumn == 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(jobStartColumn));
+        }
+        // Plugging in found info
+
+
+        newShift.ShiftStart = timeIndex[jobStartColumn];
+        // Finding end of shift
+
+        // Build shift
+
+        // Add shift to existing JobPosition in current day, else create it
+        if (string.IsNullOrEmpty(jobKey) && JobFinder.jobKeys.ContainsKey(jobKey))
+        {
+            string jobName = JobFinder.jobKeys[jobKey];
+            var jobPosition = currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
+            if (jobPosition == null)
+            {
+                jobPosition = new JobPosition(jobName);
+                currentDay.JobPositions.Add(jobPosition);
+            }
+            jobPosition.Shifts.Add(newShift);
         }
     }
 
