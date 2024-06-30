@@ -105,10 +105,16 @@ public class XlsxConverter
             .Where(e => String.Equals(firstName, e.FirstName, StringComparison.OrdinalIgnoreCase)
                 && String.Equals(lastName, e.LastName,StringComparison.OrdinalIgnoreCase))
             .First();
+        
+        // Creating new employee object for unregistered employees to use default values
         if(employeePreferences == null)
         {
-            employeePreferences = 
+            employeePreferences = new Employee();
+            employeePreferences.FirstName = firstName;
+            employeePreferences.LastName = lastName;
         }
+
+
 
         string? jobKey = "";
         string? fillColor;
