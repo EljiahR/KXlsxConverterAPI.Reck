@@ -7,7 +7,7 @@ namespace KXlsxConverterAPI.Helpers;
 
 public class XlsxConverter
 {
-    private enum CurrentSection { FoundNewDay, FoundEmployee, FoundEnd, FoundNothing };
+    private enum CurrentSection { FoundNewDay, FoundEmployee, FoundNothing };
     private static Regex dayOfWeekRegex = new Regex(@"^[A-Z]{1}[a-z]{2}\s\d{2}\/\d{2}\/\d{4}$");
     private static Regex nameRegex = new Regex(@"^[a-zA-Z]+,\s[a-zA-Z]+");
 
@@ -33,7 +33,7 @@ public class XlsxConverter
     {
         days = new();
         timeIndex = new();
-        _storeEmployees = storeEmployees;
+        _storeEmployees = storeEmployees; // Injecting whatever employee list was found before this converter was created
     }
     public List<WeekdaySchedule> ConvertXlsx(Stream stream)
     {
@@ -48,28 +48,27 @@ public class XlsxConverter
             rowCount = ws.Dimension.Rows;
             colCount = ws.Dimension.Columns;
 
-            bool dayFound = false; // For tracking when in a valid range for shifts
-            WeekdaySchedule? currentDay = null;
+            currentDay = null;
+            bool daysFound = false;
             for (int row = 1; row <= rowCount; row++)
-                switch (IdentifyRow(row, dayFound))
+                switch (IdentifyRow(row, daysFound))
                 {
                     case CurrentSection.FoundNewDay:
-                        dayFound = true;
                         DateTime newWeekday = DateTime.Parse(ws.Cells[row, 1].Value?.ToString() ?? "");
                         currentDay = new WeekdaySchedule(newWeekday.ToString("dddd"), newWeekday);
                         days.Add(currentDay);
 
                         // I've had troubles with the columns for the times not being consistant
                         // so I've implemented a method to figure it out for the rest of the class
-                        if (days.Count == 1) MapTimeIndexes(row + 1);
+                        if (days.Count == 1){
+                            MapTimeIndexes(row + 1);
+                            daysFound = true;
+                        }
                         break;
-                    case CurrentSection.FoundEmployee when dayFound:
+                    case CurrentSection.FoundEmployee:
                         ParseEmployeeRow(row);
                         break;
-                    case CurrentSection.FoundEnd:
-                        dayFound = false;
-                        currentDay = null;
-                        break;
+                   
                 }
         }
 
@@ -80,14 +79,12 @@ public class XlsxConverter
         return days;
     }
 
-    private CurrentSection IdentifyRow(int row, bool dayFound)
+    private CurrentSection IdentifyRow(int row, bool daysFound)
     {
 
         if (dayOfWeekRegex.IsMatch(ws.Cells[row, 1].Value?.ToString() ?? ""))
             return CurrentSection.FoundNewDay;
-        else if (dayFound && ws.Cells[row, 1].Value?.ToString() == "Forcasted")
-            return CurrentSection.FoundEnd;
-        else if (dayFound && nameRegex.IsMatch(ws.Cells[row, nameColumn].Value?.ToString() ?? ""))
+        else if (daysFound && nameRegex.IsMatch(ws.Cells[row, nameColumn].Value?.ToString() ?? ""))
             return CurrentSection.FoundEmployee;
         return CurrentSection.FoundNothing;
     }
@@ -145,12 +142,13 @@ public class XlsxConverter
 
         int jobEndColumn = 0;
         string? splitJobKey = "";
-        for (int col = colCount; col > 0; col--)
+        for (int col = colCount; col > 1; col--)
         {
-            fillColor = ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
+            // Actual time ending would be the cell right after the last filled cell, hence col - 1 for all checks
+            fillColor = ws.Cells[row, col - 1].Style.Fill.BackgroundColor.Rgb;
             if (fillColor == JobFinder.jobCellFillRgb)
             {
-                splitJobKey = ws.Cells[row, col].Value?.ToString();
+                splitJobKey = ws.Cells[row, col - 1].Value?.ToString();
                 jobEndColumn = col;
                 break;
             }
@@ -163,13 +161,18 @@ public class XlsxConverter
         }
 
         // Build shift
+        if(!timeIndex.ContainsKey(jobEndColumn))
+        {
+            jobEndColumn--;
+            if (!timeIndex.ContainsKey(jobEndColumn)) throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
+        }
         newShift.ShiftEnd = timeIndex[jobEndColumn];
         bool isAdult = employeePreferences.Birthday.HasValue ? (currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
         (newShift.BreakOne, newShift.Lunch, newShift.BreakTwo) = EmployeeHelpers.GetBreaks(
             newShift.ShiftStart, newShift.ShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
 
         // Add shift to existing JobPosition in current day, else create it
-        if (string.IsNullOrEmpty(jobKey) && JobFinder.jobKeys.ContainsKey(jobKey))
+        if (!string.IsNullOrEmpty(jobKey) && JobFinder.jobKeys.ContainsKey(jobKey))
         {
             string jobName = JobFinder.jobKeys[jobKey];
             var jobPosition = currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
