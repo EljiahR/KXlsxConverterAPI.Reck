@@ -104,7 +104,7 @@ public class XlsxConverter
         Employee? employeePreferences = _storeEmployees
             .Where(e => String.Equals(firstName, e.FirstName, StringComparison.OrdinalIgnoreCase)
                 && String.Equals(lastName, e.LastName,StringComparison.OrdinalIgnoreCase))
-            .First();
+            .FirstOrDefault();
         
         // Creating new employee object for unregistered employees to use default values
         if(employeePreferences == null)
@@ -139,9 +139,34 @@ public class XlsxConverter
 
 
         newShift.ShiftStart = timeIndex[jobStartColumn];
+
+
         // Finding end of shift
 
+        int jobEndColumn = 0;
+        string? splitJobKey = "";
+        for (int col = colCount; col > 0; col--)
+        {
+            fillColor = ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
+            if (fillColor == JobFinder.jobCellFillRgb)
+            {
+                splitJobKey = ws.Cells[row, col].Value?.ToString();
+                jobEndColumn = col;
+                break;
+            }
+        }
+
+        // Throwing error when end is not found, end should always be greater
+        if (jobEndColumn <= jobStartColumn)
+        {
+            throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
+        }
+
         // Build shift
+        newShift.ShiftEnd = timeIndex[jobEndColumn];
+        bool isAdult = employeePreferences.Birthday.HasValue ? (currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
+        (newShift.BreakOne, newShift.Lunch, newShift.BreakTwo) = EmployeeHelpers.GetBreaks(
+            newShift.ShiftStart, newShift.ShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
 
         // Add shift to existing JobPosition in current day, else create it
         if (string.IsNullOrEmpty(jobKey) && JobFinder.jobKeys.ContainsKey(jobKey))
