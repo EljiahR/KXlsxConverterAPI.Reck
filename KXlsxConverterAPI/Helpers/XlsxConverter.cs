@@ -173,6 +173,7 @@ public class XlsxConverter
         string jobName = string.Empty;
         // File's job key is null as of making this and I could not think of anything other than hardcoding it
         if (string.IsNullOrEmpty(jobKey)) jobName = "File Clerk";
+        else if (jobKey == "F") jobName = ws.Cells[row, jobColumn].Value?.ToString();
         else if (JobFinder.jobKeys.ContainsKey(jobKey)) jobName = JobFinder.jobKeys[jobKey];
         
         var jobPosition = currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
