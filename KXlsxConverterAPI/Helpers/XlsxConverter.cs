@@ -95,8 +95,6 @@ public class XlsxConverter
         string firstName, lastName;
         
         (firstName, lastName) = StringFixer.GetFirstAndLastName(ws.Cells[row, nameColumn].Value?.ToString());
-        newShift.FirstName = firstName;
-        newShift.LastName = lastName;
         // Try to match employee from database here
         Employee? employeePreferences = _storeEmployees
             .Where(e => String.Equals(firstName, e.FirstName, StringComparison.OrdinalIgnoreCase)
@@ -107,11 +105,12 @@ public class XlsxConverter
         if(employeePreferences == null)
         {
             employeePreferences = new Employee();
-            employeePreferences.FirstName = firstName;
-            employeePreferences.LastName = lastName;
+            employeePreferences.FirstName = StringFixer.GetProperCase(firstName);
+            employeePreferences.LastName = StringFixer.GetProperCase(lastName);
         }
 
-
+        newShift.FirstName = employeePreferences.FirstName;
+        newShift.LastName = employeePreferences.LastName;
 
         string? jobKey = "";
         string? fillColor;
@@ -172,17 +171,21 @@ public class XlsxConverter
             newShift.ShiftStart, newShift.ShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
 
         // Add shift to existing JobPosition in current day, else create it
-        if (!string.IsNullOrEmpty(jobKey) && JobFinder.jobKeys.ContainsKey(jobKey))
+
+        string jobName = string.Empty;
+        // File's job key is null as of making this and I could not think of anything other than hardcoding it
+        if (string.IsNullOrEmpty(jobKey)) jobName = "File Clerk";
+        else if (JobFinder.jobKeys.ContainsKey(jobKey)) jobName = JobFinder.jobKeys[jobKey];
+        
+        var jobPosition = currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
+        if (jobPosition == null)
         {
-            string jobName = JobFinder.jobKeys[jobKey];
-            var jobPosition = currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
-            if (jobPosition == null)
-            {
-                jobPosition = new JobPosition(jobName);
-                currentDay.JobPositions.Add(jobPosition);
-            }
-            jobPosition.Shifts.Add(newShift);
+            jobPosition = new JobPosition(jobName);
+            currentDay.JobPositions.Add(jobPosition);
         }
+        jobPosition.Shifts.Add(newShift);
+        
+       
     }
 
     private void MapTimeIndexes(int row)
