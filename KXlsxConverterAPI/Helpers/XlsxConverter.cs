@@ -159,16 +159,14 @@ public class XlsxConverter
             throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
         }
 
-        // Build shift
+        // Fixing any problems caused by nefarious merged time cells
         if(!timeIndex.ContainsKey(jobEndColumn))
         {
             jobEndColumn--;
             if (!timeIndex.ContainsKey(jobEndColumn)) throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
         }
         newShift.ShiftEnd = timeIndex[jobEndColumn];
-        bool isAdult = employeePreferences.Birthday.HasValue ? (currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
-        (newShift.BreakOne, newShift.Lunch, newShift.BreakTwo) = EmployeeHelpers.GetBreaks(
-            newShift.ShiftStart, newShift.ShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
+       
 
         // Add shift to existing JobPosition in current day, else create it
 
@@ -184,8 +182,16 @@ public class XlsxConverter
             currentDay.JobPositions.Add(jobPosition);
         }
         jobPosition.Shifts.Add(newShift);
+
+        //Getting breaks for front end employees
+        if(jobName.Contains("Front"))
+        {
+            bool isAdult = employeePreferences.Birthday.HasValue ? (currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
+            (newShift.BreakOne, newShift.Lunch, newShift.BreakTwo) = EmployeeHelpers.GetBreaks(
+                newShift.ShiftStart, newShift.ShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
+        } 
         
-       
+
     }
 
     private void MapTimeIndexes(int row)

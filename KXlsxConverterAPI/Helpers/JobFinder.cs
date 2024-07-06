@@ -20,7 +20,9 @@
             // Job keys that are typically used as call ups for front end
             {"C", "HBC Clerk" },
             {"M", "GM MrktPlc Clk" }, // Not sure why so heavily shortened
-            {"8", "File Clerk" } // Not the actual key, which is null, just don't want to leave it out yet
+            {"8", "File Clerk" }, // Not the actual key, which is null, just don't want to leave it out yet
+            {"F", "Floral Clerk" },
+            {"A", "Apparel Clerk" } // Has recently been F for some reason, overlapping with Floral
         };
         
         public static readonly string jobCellFillRgb = "FFC0C0C0"; // Tried the index and that didn't work sooo Rgb
