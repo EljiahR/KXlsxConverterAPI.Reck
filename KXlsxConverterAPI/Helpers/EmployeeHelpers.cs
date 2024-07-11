@@ -69,8 +69,55 @@ public class EmployeeHelpers
 
     public static void FillCarts(CartSlot[] Carts, JobPosition Baggers, Shift? bathroomBagger)
     {
-        
+        Shift currentBagger;
+        CartSlot currentSlot;
+        // Dictionaries and first for loop trying to catch baggers with same first name, probably a bit much
+        Dictionary<string, int> indexKey = new();
+        Dictionary<int, string> nameKey = new();
+        for(int i = 0; i < Baggers.Shifts.Count; i++)
+        {
+            if (indexKey.ContainsKey(Baggers.Shifts[i].FirstName))
+            {
+                int existingNameIndex = indexKey[Baggers.Shifts[i].FirstName];
+                nameKey[existingNameIndex] = nameKey[existingNameIndex] + " " + Baggers.Shifts[existingNameIndex].LastName.Substring(0, 1);
+
+                nameKey.Add(i, Baggers.Shifts[existingNameIndex].FirstName + " " + Baggers.Shifts[existingNameIndex].LastName.Substring(0, 1));
+            } else
+            {
+                indexKey.Add(Baggers.Shifts[i].FirstName, i);
+                nameKey.Add(i, Baggers.Shifts[i].FirstName);
+            }
+        }
+        // I know O(n^2), but timeSlot is a constant length
+        for(int baggerIndex = 0; baggerIndex < Baggers.Shifts.Count; baggerIndex++)
+        {
+            currentBagger = Baggers.Shifts[baggerIndex];
+            for (int timeSlot = 0; timeSlot < Carts.Length; timeSlot++)
+            {
+                currentSlot = Carts[timeSlot];
+                // I know that this is a lot for one if statement but none of these are mutually exclusive
+                if (currentSlot.Baggers.Contains("") && (timeSlot == 0 || !Carts[timeSlot - 1].Baggers.Contains(nameKey[baggerIndex])) 
+                    && currentSlot.Time >= currentBagger.ShiftStart && currentBagger.ShiftEnd.AddHours(0.5) >= currentSlot.Time 
+                    && (currentBagger.BreakOne == null || TimesOverlap(currentBagger.BreakOne.Value, currentSlot.Time))
+                    && (currentBagger.Lunch == null || TimesOverlap(currentBagger.Lunch.Value, currentSlot.Time))
+                    && (currentBagger.BreakTwo == null || TimesOverlap(currentBagger.BreakTwo.Value, currentSlot.Time))
+                    )
+                {
+                    int slotToFill = Array.FindIndex(currentSlot.Baggers, x => string.IsNullOrEmpty(x));
+                    currentSlot.Baggers[slotToFill] = nameKey[baggerIndex];
+                }
+            } 
+        }
 
         
+    }
+
+    private static bool TimesOverlap(DateTime breakTime, DateTime cartTime, bool isLunch=false)
+    {
+        TimeSpan timeDifference;
+        if(breakTime > cartTime) timeDifference = breakTime - cartTime;
+        else timeDifference = cartTime - breakTime;
+        if (isLunch) return timeDifference.TotalHours >= 0.5;
+        else return timeDifference.TotalHours >= 0.25;
     }
 }
