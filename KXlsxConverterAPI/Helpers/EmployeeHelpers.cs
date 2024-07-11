@@ -21,18 +21,18 @@ public class EmployeeHelpers
         // Im sure the order of the if else statements are a little weird but it honestly felt the most efficient
 
         // 8.5 hours is pretty much guarenteed to be a minor with a full length shift
-        if(shiftLength.Hours >= 8.5)
+        if(shiftLength.TotalHours >= 8.5)
         {
             break1 = startTime.AddHours(2);
             lunch = startTime.AddHours(4);
             break2 = startTime.AddHours(6.5);
-        } else if(shiftLength.Hours >= 6.5 && getsLunch)
+        } else if(shiftLength.TotalHours >= 6.5 && getsLunch)
         {
             break1 = startTime.AddHours(2);
             lunch = startTime.AddHours(4);
-            if(shiftLength.Hours < 8) break2 = endTime.AddHours(-1);
+            if(shiftLength.TotalHours < 8) break2 = endTime.AddHours(-1);
             else break2 = endTime.AddHours(-2);
-        } else if(shiftLength.Hours >= 8)
+        } else if(shiftLength.TotalHours >= 8)
         {
             if (breakPreference > 1)
             {
@@ -40,11 +40,11 @@ public class EmployeeHelpers
                 break2 = startTime.AddHours(6);
             }
             else lunch = startTime.AddHours(4);
-        } else if(shiftLength.Hours >= 5 && getsLunch)
+        } else if(shiftLength.TotalHours >= 5 && getsLunch)
         {
             break1 = startTime.AddHours(2);
             lunch = startTime.AddHours(4);
-        } else if(shiftLength.Hours >= 6)
+        } else if(shiftLength.TotalHours >= 6)
         {
             if(breakPreference > 1)
             {
@@ -54,12 +54,12 @@ public class EmployeeHelpers
                 else break1 = startTime.AddHours(2);
             } else
             {
-                lunch = startTime.AddHours(shiftLength.Hours / 2);
+                lunch = startTime.AddHours(shiftLength.TotalHours / 2);
             }
         } else
         {
             // Only shifts left should be getting exactly one 15 minute break
-            break1 = startTime.AddHours(shiftLength.Hours / 2);
+            break1 = startTime.AddHours(shiftLength.TotalHours / 2);
         }
 
         return (break1, lunch, break2);
