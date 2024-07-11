@@ -27,6 +27,9 @@ public class XlsxConverter
     private int rowCount = 0;
     private int colCount = 0;
 
+    private Shift? bathroomShift = null;
+    private int bathroomShiftOrder = -1;
+
     private IEnumerable<Employee> _storeEmployees;
 
     public XlsxConverter(IEnumerable<Employee> storeEmployees)
@@ -55,7 +58,7 @@ public class XlsxConverter
                 {
                     case CurrentSection.FoundNewDay:
                         DateTime newWeekday = DateTime.Parse(ws.Cells[row, 1].Value?.ToString() ?? "");
-                        currentDay = new WeekdaySchedule(newWeekday.ToString("dddd"), newWeekday);
+                        
                         days.Add(currentDay);
 
                         // I've had troubles with the columns for the times not being consistant
@@ -63,7 +66,15 @@ public class XlsxConverter
                         if (days.Count == 1){
                             MapTimeIndexes(row + 1);
                             daysFound = true;
+                        } else
+                        {
+                            EmployeeHelpers.FillCarts(currentDay.Carts, currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault());
                         }
+
+                        currentDay = new WeekdaySchedule(newWeekday.ToString("dddd"), newWeekday);
+                        // Reseting bathroom bagger
+                        bathroomShift = null;
+                        bathroomShiftOrder = -1;
                         break;
                     case CurrentSection.FoundEmployee:
                         ParseEmployeeRow(row);
@@ -72,9 +83,8 @@ public class XlsxConverter
                 }
         }
 
-
-
-        //days.Add(new WeekdaySchedule("Testday", DateTime.Today));
+        // Filling carts in for the last day
+        EmployeeHelpers.FillCarts(currentDay.Carts, currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault(), bathroomShift);
 
         return days;
     }
@@ -184,12 +194,18 @@ public class XlsxConverter
         }
         jobPosition.Shifts.Add(newShift);
 
-        //Getting breaks for front end employees
+        // Getting breaks for front end employees
         if(jobName.Contains("Front"))
         {
             bool isAdult = employeePreferences.Birthday.HasValue ? (currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
             (newShift.BreakOne, newShift.Lunch, newShift.BreakTwo) = EmployeeHelpers.GetBreaks(
                 newShift.ShiftStart, newShift.ShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
+            // Getting the most appropriate bagger for restrooms
+            if(jobName.Contains("Courtesy") && newShift.ShiftStart.Hour <= 7 && employeePreferences.BathroomOrder != null && (bathroomShiftOrder == -1 || employeePreferences.BathroomOrder < bathroomShiftOrder))
+            {
+                bathroomShift = newShift;
+                bathroomShiftOrder = employeePreferences.BathroomOrder;
+            }
         } 
         
 

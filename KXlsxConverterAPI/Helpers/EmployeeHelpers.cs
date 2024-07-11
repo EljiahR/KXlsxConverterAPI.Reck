@@ -1,4 +1,6 @@
-﻿namespace KXlsxConverterAPI.Helpers;
+﻿using KXlsxConverterAPI.Models.ScheduleModels;
+
+namespace KXlsxConverterAPI.Helpers;
 
 public class EmployeeHelpers
 {
@@ -63,5 +65,12 @@ public class EmployeeHelpers
         }
 
         return (break1, lunch, break2);
+    }
+
+    public static void FillCarts(CartSlot[] Carts, JobPosition Baggers, Shift? bathroomBagger)
+    {
+        
+
+        
     }
 }
