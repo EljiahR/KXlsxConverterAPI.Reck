@@ -9,6 +9,6 @@
         public DateTime? BreakOne { get; set; } = null;
         public DateTime? Lunch { get; set; } = null;
         public DateTime? BreakTwo { get; set; } = null;
-        
+
     }
 }

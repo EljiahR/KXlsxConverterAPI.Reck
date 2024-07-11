@@ -20,12 +20,12 @@ public class StringFixer
     {
         if (string.IsNullOrEmpty(name)) return string.Empty;
         if (name.Length < 2) return name.ToUpper();
-        string result = name.Substring(0,1).ToUpper() + name.Substring(1).ToLower();
+        string result = name.Substring(0, 1).ToUpper() + name.Substring(1).ToLower();
         if (mcRegex.IsMatch(result))
         {
             if (result.Length == 2) return "Mc";
             if (result.Length == 3) return "Mc" + result.Substring(2).ToUpper();
-            result = "Mc" + result.Substring(2,1).ToUpper() + result.Substring(3).ToLower();
+            result = "Mc" + result.Substring(2, 1).ToUpper() + result.Substring(3).ToLower();
         }
         return result;
     }

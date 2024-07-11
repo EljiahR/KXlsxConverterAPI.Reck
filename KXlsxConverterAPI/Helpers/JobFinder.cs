@@ -24,7 +24,7 @@
             {"F", "Floral Clerk" },
             {"A", "Apparel Clerk" } // Has recently been F for some reason, overlapping with Floral
         };
-        
+
         public static readonly string jobCellFillRgb = "FFC0C0C0"; // Tried the index and that didn't work sooo Rgb
 
     }

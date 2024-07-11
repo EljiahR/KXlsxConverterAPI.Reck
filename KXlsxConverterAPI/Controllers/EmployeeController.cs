@@ -48,11 +48,11 @@ public class EmployeeController : Controller
         {
             return BadRequest("No file uploaded or file empty");
         }
-        if(!string.Equals(System.IO.Path.GetExtension(file.FileName), ".xlsx"))
+        if (!string.Equals(System.IO.Path.GetExtension(file.FileName), ".xlsx"))
         {
             return BadRequest($"Wrong file type uploaded, {System.IO.Path.GetExtension(file.FileName)} not accepted");
         }
-        
+
         var allEmployees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber); // Ok if empty
         List<WeekdaySchedule> fixedSchedule = new();
         using (var stream = new MemoryStream())

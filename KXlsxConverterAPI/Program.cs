@@ -1,5 +1,4 @@
 using KXlsxConverterAPI.Data;
-using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Repositories;
 using KXlsxConverterAPI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +8,7 @@ var services = builder.Services;
 
 // Add services to the container.
 services.AddDbContext<EmployeeContext>(options =>
-    options.UseSqlite("Data Source=employees.db"),ServiceLifetime.Scoped);
+    options.UseSqlite("Data Source=employees.db"), ServiceLifetime.Scoped);
 
 services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 services.AddScoped<IEmployeeService, EmployeeService>();

@@ -4,7 +4,7 @@ namespace KXlsxConverterAPI.Helpers;
 
 public class EmployeeHelpers
 {
-    public static (DateTime?, DateTime?, DateTime?) GetBreaks(DateTime startTime, DateTime endTime, int breakPreference,bool getsLunch)
+    public static (DateTime?, DateTime?, DateTime?) GetBreaks(DateTime startTime, DateTime endTime, int breakPreference, bool getsLunch)
     {
         // Break rules are as follows:
         // All employees get 1 15 minute break if working 4 or more hours
@@ -23,18 +23,20 @@ public class EmployeeHelpers
         // Im sure the order of the if else statements are a little weird but it honestly felt the most efficient
 
         // 8.5 hours is pretty much guarenteed to be a minor with a full length shift
-        if(shiftLength.TotalHours >= 8.5)
+        if (shiftLength.TotalHours >= 8.5)
         {
             break1 = startTime.AddHours(2);
             lunch = startTime.AddHours(4);
             break2 = startTime.AddHours(6.5);
-        } else if(shiftLength.TotalHours >= 6.5 && getsLunch)
+        }
+        else if (shiftLength.TotalHours >= 6.5 && getsLunch)
         {
             break1 = startTime.AddHours(2);
             lunch = startTime.AddHours(4);
-            if(shiftLength.TotalHours < 8) break2 = endTime.AddHours(-1);
+            if (shiftLength.TotalHours < 8) break2 = endTime.AddHours(-1);
             else break2 = endTime.AddHours(-2);
-        } else if(shiftLength.TotalHours >= 8)
+        }
+        else if (shiftLength.TotalHours >= 8)
         {
             if (breakPreference > 1)
             {
@@ -42,23 +44,27 @@ public class EmployeeHelpers
                 break2 = startTime.AddHours(6);
             }
             else lunch = startTime.AddHours(4);
-        } else if(shiftLength.TotalHours >= 5 && getsLunch)
+        }
+        else if (shiftLength.TotalHours >= 5 && getsLunch)
         {
             break1 = startTime.AddHours(2);
             lunch = startTime.AddHours(4);
-        } else if(shiftLength.TotalHours >= 6)
+        }
+        else if (shiftLength.TotalHours >= 6)
         {
-            if(breakPreference > 1)
+            if (breakPreference > 1)
             {
                 // This section is subject to change
                 break2 = endTime.AddHours(-2);
                 if (break2.GetValueOrDefault().AddHours(-3) >= startTime.AddHours(2)) break1 = break2.GetValueOrDefault().AddHours(-3);
                 else break1 = startTime.AddHours(2);
-            } else
+            }
+            else
             {
                 lunch = startTime.AddHours(shiftLength.TotalHours / 2);
             }
-        } else
+        }
+        else
         {
             // Only shifts left should be getting exactly one 15 minute break
             break1 = startTime.AddHours(shiftLength.TotalHours / 2);
@@ -74,7 +80,7 @@ public class EmployeeHelpers
         // Dictionaries and first for loop trying to catch baggers with same first name, probably a bit much
         Dictionary<string, int> indexKey = new();
         Dictionary<int, string> nameKey = new();
-        for(int i = 0; i < Baggers.Shifts.Count; i++)
+        for (int i = 0; i < Baggers.Shifts.Count; i++)
         {
             if (indexKey.ContainsKey(Baggers.Shifts[i].FirstName))
             {
@@ -82,21 +88,22 @@ public class EmployeeHelpers
                 nameKey[existingNameIndex] = nameKey[existingNameIndex] + " " + Baggers.Shifts[existingNameIndex].LastName.Substring(0, 1);
 
                 nameKey.Add(i, Baggers.Shifts[i].FirstName + " " + Baggers.Shifts[i].LastName.Substring(0, 1));
-            } else
+            }
+            else
             {
                 indexKey.Add(Baggers.Shifts[i].FirstName, i);
                 nameKey.Add(i, Baggers.Shifts[i].FirstName);
             }
         }
         // I know O(n^2), but timeSlot is a constant length
-        for(int baggerIndex = 0; baggerIndex < Baggers.Shifts.Count; baggerIndex++)
+        for (int baggerIndex = 0; baggerIndex < Baggers.Shifts.Count; baggerIndex++)
         {
             currentBagger = Baggers.Shifts[baggerIndex];
             for (int timeSlot = 0; timeSlot < Carts.Length; timeSlot++)
             {
                 currentSlot = Carts[timeSlot];
                 // I know that this is a lot for one if statement but none of these are mutually exclusive
-                if (currentSlot.Baggers.Contains(null) && (timeSlot == 0 || !Carts[timeSlot - 1].Baggers.Contains(nameKey[baggerIndex])) 
+                if (currentSlot.Baggers.Contains(null) && (timeSlot == 0 || !Carts[timeSlot - 1].Baggers.Contains(nameKey[baggerIndex]))
                     && currentSlot.Time.TimeOfDay >= currentBagger.ShiftStart.TimeOfDay && currentBagger.ShiftEnd.AddHours(-0.5).TimeOfDay >= currentSlot.Time.TimeOfDay
                     && (currentBagger.BreakOne == null || TimesOverlap(currentBagger.BreakOne.Value, currentSlot.Time))
                     && (currentBagger.Lunch == null || TimesOverlap(currentBagger.Lunch.Value, currentSlot.Time))
@@ -106,16 +113,16 @@ public class EmployeeHelpers
                     int slotToFill = Array.FindIndex(currentSlot.Baggers, x => string.IsNullOrEmpty(x));
                     currentSlot.Baggers[slotToFill] = nameKey[baggerIndex];
                 }
-            } 
+            }
         }
 
-        
+
     }
 
-    private static bool TimesOverlap(DateTime breakTime, DateTime cartTime, bool isLunch=false)
+    private static bool TimesOverlap(DateTime breakTime, DateTime cartTime, bool isLunch = false)
     {
         TimeSpan timeDifference;
-        if(breakTime.TimeOfDay > cartTime.TimeOfDay) timeDifference = breakTime.TimeOfDay - cartTime.TimeOfDay;
+        if (breakTime.TimeOfDay > cartTime.TimeOfDay) timeDifference = breakTime.TimeOfDay - cartTime.TimeOfDay;
         else timeDifference = cartTime.TimeOfDay - breakTime.TimeOfDay;
         if (isLunch) return timeDifference.TotalHours >= 0.5;
         else return timeDifference.TotalHours >= 0.25;

@@ -58,15 +58,17 @@ public class XlsxConverter
                 {
                     case CurrentSection.FoundNewDay:
                         DateTime newWeekday = DateTime.Parse(ws.Cells[row, 1].Value?.ToString() ?? "");
-                        
+
                         days.Add(currentDay);
 
                         // I've had troubles with the columns for the times not being consistant
                         // so I've implemented a method to figure it out for the rest of the class
-                        if (days.Count == 1){
+                        if (days.Count == 1)
+                        {
                             MapTimeIndexes(row + 1);
                             daysFound = true;
-                        } else
+                        }
+                        else
                         {
                             EmployeeHelpers.FillCarts(currentDay.Carts, currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault(), bathroomShift);
                         }
@@ -79,7 +81,7 @@ public class XlsxConverter
                     case CurrentSection.FoundEmployee:
                         ParseEmployeeRow(row);
                         break;
-                   
+
                 }
         }
 
@@ -103,16 +105,16 @@ public class XlsxConverter
     {
         Shift newShift = new Shift();
         string firstName, lastName;
-        
+
         (firstName, lastName) = StringFixer.GetFirstAndLastName(ws.Cells[row, nameColumn].Value?.ToString());
         // Try to match employee from database here
         Employee? employeePreferences = _storeEmployees
             .Where(e => String.Equals(firstName, e.FirstName, StringComparison.OrdinalIgnoreCase)
-                && String.Equals(lastName, e.LastName,StringComparison.OrdinalIgnoreCase))
+                && String.Equals(lastName, e.LastName, StringComparison.OrdinalIgnoreCase))
             .FirstOrDefault();
-        
+
         // Creating new employee object for unregistered employees to use default values
-        if(employeePreferences == null)
+        if (employeePreferences == null)
         {
             employeePreferences = new Employee();
             employeePreferences.FirstName = StringFixer.GetProperCase(firstName);
@@ -129,7 +131,7 @@ public class XlsxConverter
         for (int col = 1; col <= colCount; col++)
         {
             fillColor = ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
-            if(fillColor == JobFinder.jobCellFillRgb)
+            if (fillColor == JobFinder.jobCellFillRgb)
             {
                 jobKey = ws.Cells[row, col].Value?.ToString();
                 jobStartColumn = col;
@@ -137,7 +139,7 @@ public class XlsxConverter
             }
         }
         // Throwing error if jobStartColumn was never found
-        if(jobStartColumn == 0)
+        if (jobStartColumn == 0)
         {
             throw new ArgumentOutOfRangeException(nameof(jobStartColumn));
         }
@@ -170,13 +172,13 @@ public class XlsxConverter
         }
 
         // Fixing any problems caused by nefarious merged time cells
-        if(!timeIndex.ContainsKey(jobEndColumn))
+        if (!timeIndex.ContainsKey(jobEndColumn))
         {
             jobEndColumn--;
             if (!timeIndex.ContainsKey(jobEndColumn)) throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
         }
         newShift.ShiftEnd = timeIndex[jobEndColumn];
-       
+
 
         // Add shift to existing JobPosition in current day, else create it
 
@@ -185,7 +187,7 @@ public class XlsxConverter
         if (string.IsNullOrEmpty(jobKey)) jobName = "File Clerk";
         else if (jobKey == "F") jobName = ws.Cells[row, jobColumn].Value?.ToString();
         else if (JobFinder.jobKeys.ContainsKey(jobKey)) jobName = JobFinder.jobKeys[jobKey];
-        
+
         var jobPosition = currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
         if (jobPosition == null)
         {
@@ -195,19 +197,19 @@ public class XlsxConverter
         jobPosition.Shifts.Add(newShift);
 
         // Getting breaks for front end employees
-        if(jobName.Contains("Front"))
+        if (jobName.Contains("Front"))
         {
             bool isAdult = employeePreferences.Birthday.HasValue ? (currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
             (newShift.BreakOne, newShift.Lunch, newShift.BreakTwo) = EmployeeHelpers.GetBreaks(
                 newShift.ShiftStart, newShift.ShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
             // Getting the most appropriate bagger for restrooms
-            if(jobName.Contains("Courtesy") && newShift.ShiftStart.Hour <= 7 && employeePreferences.BathroomOrder != 0 && (bathroomShiftOrder == -1 || employeePreferences.BathroomOrder < bathroomShiftOrder))
+            if (jobName.Contains("Courtesy") && newShift.ShiftStart.Hour <= 7 && employeePreferences.BathroomOrder != 0 && (bathroomShiftOrder == -1 || employeePreferences.BathroomOrder < bathroomShiftOrder))
             {
                 bathroomShift = newShift;
                 bathroomShiftOrder = employeePreferences.BathroomOrder;
             }
-        } 
-        
+        }
+
 
     }
 
