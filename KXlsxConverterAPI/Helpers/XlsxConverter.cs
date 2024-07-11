@@ -68,7 +68,7 @@ public class XlsxConverter
                             daysFound = true;
                         } else
                         {
-                            EmployeeHelpers.FillCarts(currentDay.Carts, currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault());
+                            EmployeeHelpers.FillCarts(currentDay.Carts, currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault(), bathroomShift);
                         }
 
                         currentDay = new WeekdaySchedule(newWeekday.ToString("dddd"), newWeekday);
@@ -201,7 +201,7 @@ public class XlsxConverter
             (newShift.BreakOne, newShift.Lunch, newShift.BreakTwo) = EmployeeHelpers.GetBreaks(
                 newShift.ShiftStart, newShift.ShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
             // Getting the most appropriate bagger for restrooms
-            if(jobName.Contains("Courtesy") && newShift.ShiftStart.Hour <= 7 && employeePreferences.BathroomOrder != null && (bathroomShiftOrder == -1 || employeePreferences.BathroomOrder < bathroomShiftOrder))
+            if(jobName.Contains("Courtesy") && newShift.ShiftStart.Hour <= 7 && employeePreferences.BathroomOrder != 0 && (bathroomShiftOrder == -1 || employeePreferences.BathroomOrder < bathroomShiftOrder))
             {
                 bathroomShift = newShift;
                 bathroomShiftOrder = employeePreferences.BathroomOrder;

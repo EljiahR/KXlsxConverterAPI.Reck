@@ -81,7 +81,7 @@ public class EmployeeHelpers
                 int existingNameIndex = indexKey[Baggers.Shifts[i].FirstName];
                 nameKey[existingNameIndex] = nameKey[existingNameIndex] + " " + Baggers.Shifts[existingNameIndex].LastName.Substring(0, 1);
 
-                nameKey.Add(i, Baggers.Shifts[existingNameIndex].FirstName + " " + Baggers.Shifts[existingNameIndex].LastName.Substring(0, 1));
+                nameKey.Add(i, Baggers.Shifts[i].FirstName + " " + Baggers.Shifts[i].LastName.Substring(0, 1));
             } else
             {
                 indexKey.Add(Baggers.Shifts[i].FirstName, i);
@@ -96,8 +96,8 @@ public class EmployeeHelpers
             {
                 currentSlot = Carts[timeSlot];
                 // I know that this is a lot for one if statement but none of these are mutually exclusive
-                if (currentSlot.Baggers.Contains("") && (timeSlot == 0 || !Carts[timeSlot - 1].Baggers.Contains(nameKey[baggerIndex])) 
-                    && currentSlot.Time >= currentBagger.ShiftStart && currentBagger.ShiftEnd.AddHours(0.5) >= currentSlot.Time 
+                if (currentSlot.Baggers.Contains(null) && (timeSlot == 0 || !Carts[timeSlot - 1].Baggers.Contains(nameKey[baggerIndex])) 
+                    && currentSlot.Time.TimeOfDay >= currentBagger.ShiftStart.TimeOfDay && currentBagger.ShiftEnd.AddHours(-0.5).TimeOfDay >= currentSlot.Time.TimeOfDay
                     && (currentBagger.BreakOne == null || TimesOverlap(currentBagger.BreakOne.Value, currentSlot.Time))
                     && (currentBagger.Lunch == null || TimesOverlap(currentBagger.Lunch.Value, currentSlot.Time))
                     && (currentBagger.BreakTwo == null || TimesOverlap(currentBagger.BreakTwo.Value, currentSlot.Time))
@@ -115,8 +115,8 @@ public class EmployeeHelpers
     private static bool TimesOverlap(DateTime breakTime, DateTime cartTime, bool isLunch=false)
     {
         TimeSpan timeDifference;
-        if(breakTime > cartTime) timeDifference = breakTime - cartTime;
-        else timeDifference = cartTime - breakTime;
+        if(breakTime.TimeOfDay > cartTime.TimeOfDay) timeDifference = breakTime.TimeOfDay - cartTime.TimeOfDay;
+        else timeDifference = cartTime.TimeOfDay - breakTime.TimeOfDay;
         if (isLunch) return timeDifference.TotalHours >= 0.5;
         else return timeDifference.TotalHours >= 0.25;
     }
