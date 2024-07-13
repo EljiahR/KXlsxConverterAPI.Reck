@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Ignore Azure deployment files
+.azure/
+/KXlsxConverterAPI/Properties/ServiceDependencies/KXlsxConverterAPI20240712190747 - Web Deploy
+/KXlsxConverterAPI/Properties/serviceDependencies.json
+/KXlsxConverterAPI/Properties/serviceDependencies.KXlsxConverterAPI20240712190747 - Web Deploy.json
