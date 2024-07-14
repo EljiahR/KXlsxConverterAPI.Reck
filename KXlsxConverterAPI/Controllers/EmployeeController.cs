@@ -97,8 +97,8 @@ public class EmployeeController : Controller
         {
             await file.CopyToAsync(stream);
             stream.Position = 0;
-            XlsxConverter converter = new XlsxConverter(allEmployees);
-            fixedSchedule = converter.ConvertXlsx(stream);
+            XlsxConverter converter = new XlsxConverter(allEmployees, stream);
+            fixedSchedule = converter.ConvertXlsx();
         }
 
         return Ok(fixedSchedule);
