@@ -175,6 +175,8 @@ public class XlsxConverter
         }
         DateTime wholeShiftEnd = timeIndex[jobEndColumn];
 
+        // Get split shifts here
+
 
         // Add shift to existing JobPosition in current day, else create it
 

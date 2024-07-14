@@ -25,6 +25,9 @@
             {"A", "Apparel Clerk" } // Has recently been F for some reason, overlapping with Floral
         };
 
+        // Random characters that need to be ignored in any given employee row to help find real split shifts
+        public static readonly string[] NonJobKeys = new string[] { "~", "^", "•", "*" };
+
         public static readonly string jobCellFillRgb = "FFC0C0C0"; // Tried the index and that didn't work sooo Rgb
 
     }
