@@ -6,7 +6,7 @@ namespace KXlsxConverterAPI.Services
     {
         IEnumerable<Employee> GetAllEmployees();
         IEnumerable<Employee> GetAllByDivisionAndStoreNumber(int division, int storeNumber);
-        Employee GetEmployeeById(int id);
+        Employee? GetEmployeeById(int id);
         void AddEmployee(Employee employee);
         void AddEmployeeBatch(List<Employee> employees);
         void DeleteEmployee(Employee employee);

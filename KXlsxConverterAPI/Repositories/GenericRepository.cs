@@ -35,7 +35,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         return _dbSet.ToList();
     }
 
-    public TEntity GetById(int id)
+    public TEntity? GetById(int id)
     {
         return _dbSet.Find(id);
     }

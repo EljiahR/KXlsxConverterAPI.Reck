@@ -35,7 +35,7 @@ namespace KXlsxConverterAPI.Services
             return _employeeRepository.GetAll();
         }
 
-        public Employee GetEmployeeById(int id)
+        public Employee? GetEmployeeById(int id)
         {
             return _employeeRepository.GetById(id);
         }
