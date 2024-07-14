@@ -16,14 +16,24 @@ public class EmployeeController : Controller
         _service = service;
     }
     [HttpGet]
+    [Route("{id}")]
+    public IActionResult ViewEmployeeById(int id)
+    {
+        var employee = _service.GetEmployeeById(id);
+        return employee == null ? NotFound() : Ok(employee);
+    }
+    [HttpGet]
+    [Route("{division}/{storeNumber}")]
+    public IActionResult ViewAllEmployeesByDivisionAndStore(int division, int storeNumber)
+    {
+        var employees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber);
+        return employees == null ? NotFound() : Ok(employees);
+    }
+    [HttpGet]
     public IActionResult ViewAllEmployees()
     {
         var employees = _service.GetAllEmployees();
-        if (employees == null)
-        {
-            return NotFound();
-        }
-        return Ok(employees);
+        return employees == null ? NotFound() : Ok(employees);
     }
     [HttpPost]
     public IActionResult PostEmployee(Employee employee)
@@ -32,6 +42,20 @@ public class EmployeeController : Controller
         {
             _service.AddEmployee(employee);
             return Created();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+            return BadRequest("Error with employee format");
+        }
+    }
+    [HttpPatch]
+    public IActionResult PatchEmployee(Employee employee)
+    {
+        try
+        {
+            _service.UpdateEmployee(employee);
+            return Ok();
         }
         catch (Exception ex)
         {
