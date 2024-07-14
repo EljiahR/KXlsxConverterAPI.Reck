@@ -103,7 +103,7 @@ public class XlsxConverter
 
     private void ParseEmployeeRow(int row)
     {
-        Shift newShift = new Shift();
+        var shifts = new List<(DateTime start, DateTime end, JobPosition jobPosition)>();
         string firstName, lastName;
 
         (firstName, lastName) = StringFixer.GetFirstAndLastName(ws.Cells[row, nameColumn].Value?.ToString());
@@ -120,9 +120,6 @@ public class XlsxConverter
             employeePreferences.FirstName = StringFixer.GetProperCase(firstName);
             employeePreferences.LastName = StringFixer.GetProperCase(lastName);
         }
-
-        newShift.FirstName = employeePreferences.FirstName;
-        newShift.LastName = employeePreferences.LastName;
 
         string? jobKey = "";
         string? fillColor;
@@ -146,7 +143,7 @@ public class XlsxConverter
         // Plugging in found info
 
 
-        newShift.ShiftStart = timeIndex[jobStartColumn];
+        DateTime wholeShiftStart = timeIndex[jobStartColumn];
 
 
         // Finding end of shift
@@ -177,7 +174,7 @@ public class XlsxConverter
             jobEndColumn--;
             if (!timeIndex.ContainsKey(jobEndColumn)) throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
         }
-        newShift.ShiftEnd = timeIndex[jobEndColumn];
+        DateTime wholeShiftEnd = timeIndex[jobEndColumn];
 
 
         // Add shift to existing JobPosition in current day, else create it
@@ -194,22 +191,53 @@ public class XlsxConverter
             jobPosition = new JobPosition(jobName);
             currentDay.JobPositions.Add(jobPosition);
         }
-        jobPosition.Shifts.Add(newShift);
 
+        DateTime? breakOne = null;
+        DateTime? lunch = null;
+        DateTime? breakTwo = null;
         // Getting breaks for front end employees
         if (jobName.Contains("Front"))
         {
             bool isAdult = employeePreferences.Birthday.HasValue ? (currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
-            (newShift.BreakOne, newShift.Lunch, newShift.BreakTwo) = EmployeeHelpers.GetBreaks(
-                newShift.ShiftStart, newShift.ShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
-            // Getting the most appropriate bagger for restrooms
-            if (jobName.Contains("Courtesy") && newShift.ShiftStart.Hour <= 7 && employeePreferences.BathroomOrder != 0 && (bathroomShiftOrder == -1 || employeePreferences.BathroomOrder < bathroomShiftOrder))
-            {
-                bathroomShift = newShift;
-                bathroomShiftOrder = employeePreferences.BathroomOrder;
-            }
+            (breakOne, lunch, breakTwo) = EmployeeHelpers.GetBreaks(
+                wholeShiftStart, wholeShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
+            
         }
 
+        foreach(var shift in shifts)
+        {
+            var shiftBreakOne = breakOne != null && breakOne.Value.TimeOfDay >= shift.start.TimeOfDay && breakOne.Value.TimeOfDay < shift.end.TimeOfDay ? breakOne : null;
+            var shiftLunch = lunch != null && lunch.Value.TimeOfDay >= shift.start.TimeOfDay && lunch.Value.TimeOfDay < shift.end.TimeOfDay ? lunch : null;
+            var shiftBreakTwo = breakTwo != null && breakTwo.Value.TimeOfDay >= shift.start.TimeOfDay && breakTwo.Value.TimeOfDay < shift.end.TimeOfDay ? breakTwo : null;
+            
+            CreateAndAddShift(employeePreferences.PreferredFirstName ?? employeePreferences.FirstName, employeePreferences.LastName
+                , shift.start, shift.end, shiftBreakOne.GetValueOrDefault(), shiftLunch.GetValueOrDefault()
+                , shiftBreakTwo.GetValueOrDefault(), shift.jobPosition, employeePreferences.BathroomOrder);
+        }
+
+    }
+
+    private void CreateAndAddShift(string firstName,string lastName, DateTime shiftStart
+        , DateTime shiftEnd, DateTime breakOne, DateTime lunch, DateTime breakTwo, JobPosition jobPosition, int bathroomOrder)
+    {
+        var newShift = new Shift();
+
+        newShift.FirstName = firstName;
+        newShift.LastName = lastName;
+        newShift.ShiftStart = shiftStart;
+        newShift.ShiftEnd = shiftEnd;
+        newShift.BreakOne = breakOne;
+        newShift.Lunch = lunch;
+        newShift.BreakTwo = breakTwo;
+
+        jobPosition.Shifts.Add(newShift);
+
+        // Getting the most appropriate bagger for restrooms
+        if (jobPosition.Name.Contains("Courtesy") && shiftStart.Hour <= 7 && bathroomOrder != 0 && (bathroomShiftOrder == -1 || bathroomOrder < bathroomShiftOrder))
+        {
+            bathroomShift = newShift;
+            bathroomShiftOrder = bathroomOrder;
+        }
 
     }
 

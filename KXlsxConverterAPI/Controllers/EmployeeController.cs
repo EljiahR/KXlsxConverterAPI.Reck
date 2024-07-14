@@ -112,7 +112,7 @@ public class EmployeeController : Controller
             return Ok();
         } catch (Exception ex)
         {
-            return BadRequest("Employee not found, unable to delete");
+            return BadRequest($"{ex.Message}; Employee not found, unable to delete");
         }
     }
 }
