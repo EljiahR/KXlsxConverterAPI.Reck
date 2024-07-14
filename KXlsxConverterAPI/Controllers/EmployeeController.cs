@@ -49,6 +49,20 @@ public class EmployeeController : Controller
             return BadRequest("Error with employee format");
         }
     }
+    [HttpPost]
+    [Route("Bulk")]
+    public IActionResult PostMultipleEmployees(List<Employee> employees)
+    {
+        try
+        {
+            _service.AddEmployeeBatch(employees);
+            return Created();
+        } catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+            return BadRequest("Error with employee format");
+        }
+    }
     [HttpPatch]
     public IActionResult PatchEmployee(Employee employee)
     {
@@ -88,5 +102,17 @@ public class EmployeeController : Controller
         }
 
         return Ok(fixedSchedule);
+    }
+    [HttpDelete]
+    public IActionResult DeleteEmployee(Employee employee)
+    {
+        try
+        {
+            _service.DeleteEmployee(employee);
+            return Ok();
+        } catch (Exception ex)
+        {
+            return BadRequest("Employee not found, unable to delete");
+        }
     }
 }

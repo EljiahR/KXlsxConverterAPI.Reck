@@ -17,7 +17,14 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         _dbSet.Add(entity);
         SaveChanges();
     }
-
+    public void AddAll(IEnumerable<TEntity> entities)
+    {
+        foreach(var entity in entities)
+        {
+            _dbSet.Add(entity);
+        }
+        SaveChanges();
+    }
     public void Delete(TEntity entity)
     {
         _dbSet.Remove(entity);

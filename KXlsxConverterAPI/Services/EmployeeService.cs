@@ -15,6 +15,10 @@ namespace KXlsxConverterAPI.Services
         {
             _employeeRepository.Add(employee);
         }
+        public void AddEmployeeBatch(List<Employee> employees)
+        {
+            _employeeRepository.AddAll(employees);
+        }
 
         public void DeleteEmployee(Employee employee)
         {
