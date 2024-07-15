@@ -3,6 +3,7 @@ using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Models.ScheduleModels;
 using KXlsxConverterAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
 
 namespace KXlsxConverterAPI.Controllers;
 
@@ -97,8 +98,15 @@ public class EmployeeController : Controller
         {
             await file.CopyToAsync(stream);
             stream.Position = 0;
-            XlsxConverter converter = new XlsxConverter(allEmployees, stream);
-            fixedSchedule = converter.ConvertXlsx();
+            using (ExcelPackage package = new ExcelPackage(stream)) 
+            {
+                var ws = package.Workbook.Worksheets[0];
+                if (ws == null) throw new NullReferenceException("No usable worksheet was found");
+                XlsxConverter converter = new XlsxConverter(allEmployees, ws);
+                fixedSchedule = converter.ConvertXlsx();
+            }
+            
+            
         }
 
         return Ok(fixedSchedule);

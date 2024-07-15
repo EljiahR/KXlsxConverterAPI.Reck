@@ -7,14 +7,18 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
 string? dbConnection = builder.Configuration["POSTGRESQLCONNSTR_DatabaseConnectionString"];
-if(string.IsNullOrEmpty(dbConnection)) dbConnection = builder.Configuration["DatabaseConnectionString"];
-// Add services to the container.
+if(string.IsNullOrEmpty(dbConnection))
+{
+    services.AddDbContext<EmployeeContext>(options =>
+        options.UseSqlite("Data Source=employees.db"), ServiceLifetime.Scoped);
+}
+else
+{
+    services.AddDbContext<EmployeeContext>(options =>
+        options.UseNpgsql(dbConnection));
+}
 
-//services.AddDbContext<EmployeeContext>(options =>
-//    options.UseSqlite("Data Source=employees.db"), ServiceLifetime.Scoped);
-
-services.AddDbContext<EmployeeContext>(options =>
-    options.UseNpgsql(dbConnection));
+// Add services to the container
 
 services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 services.AddScoped<IEmployeeService, EmployeeService>();

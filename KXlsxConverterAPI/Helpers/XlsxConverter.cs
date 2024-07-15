@@ -7,72 +7,72 @@ namespace KXlsxConverterAPI.Helpers;
 
 public class XlsxConverter
 {
-    private enum CurrentSection { FoundNewDay, FoundEmployee, FoundNothing };
-    private static Regex dayOfWeekRegex = new Regex(@"^[A-Z]{1}[a-z]{2}\s\d{2}\/\d{2}\/\d{4}$");
-    private static Regex nameRegex = new Regex(@"^[a-zA-Z]+,\s[a-zA-Z]+");
+    private enum _CurrentSection { FoundNewDay, FoundEmployee, FoundNothing };
+    private static Regex _dayOfWeekRegex = new Regex(@"^[A-Z]{1}[a-z]{2}\s\d{2}\/\d{2}\/\d{4}$");
+    private static Regex _nameRegex = new Regex(@"^[a-zA-Z]+,\s[a-zA-Z]+");
 
-    private List<WeekdaySchedule> days; // New list of days to be built as rows are checked
+    private List<WeekdaySchedule> _days; // New list of days to be built as rows are checked
 
     //Column numbers are occasionally different due to random extra merged columns, so these next few variables are for fixing that
-    private Dictionary<int, DateTime> timeIndex; // Index for what time each column represents
-    private int nameColumn = 0;
+    private Dictionary<int, DateTime> _timeIndex; // Index for what time each column represents
+    private int _nameColumn = 0;
     // Last three columns may not be necessary depending on how reliable the jobkey is with the time columns
-    private int locationColumn = 0;
-    private int jobColumn = 0;
-    private int startColumn = 0;
-    private int endColumn = 0;
+    private int _locationColumn = 0;
+    private int _jobColumn = 0;
+    private int _startColumn = 0;
+    private int _endColumn = 0;
 
-    private WeekdaySchedule? currentDay;
-    private ExcelWorksheet ws;
-    private int rowCount = 0;
-    private int colCount = 0;
+    private WeekdaySchedule? _currentDay;
+    private ExcelWorksheet _ws;
+    private int _rowCount = 0;
+    private int _colCount = 0;
 
-    private Shift? bathroomShift = null;
-    private int bathroomShiftOrder = -1;
+    private Shift? _bathroomShift = null;
+    private int _bathroomShiftOrder = -1;
 
     private IEnumerable<Employee> _storeEmployees;
 
-    public XlsxConverter(IEnumerable<Employee> storeEmployees, Stream stream)
+    public XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet ws)
     {
-        days = new();
-        timeIndex = new();
+        _days = new();
+        _timeIndex = new();
         _storeEmployees = storeEmployees; // Injecting whatever employee list was found before this converter was created
-        ws = LoadWorkbookFromStream(stream);
+        _ws = ws;
     }
     public List<WeekdaySchedule> ConvertXlsx()
     {
-        rowCount = ws.Dimension.Rows;
-        colCount = ws.Dimension.Columns;
+        _rowCount = _ws.Dimension.Rows;
+        _colCount = _ws.Dimension.Columns;
 
-        currentDay = null;
+        _currentDay = null;
         bool daysFound = false;
-        for (int row = 1; row <= rowCount; row++)
+        for (int row = 1; row <= _rowCount; row++)
             switch (IdentifyRow(row, daysFound))
             {
-                case CurrentSection.FoundNewDay:
-                    DateTime newWeekday = DateTime.Parse(ws.Cells[row, 1].Value?.ToString() ?? "");
+                case _CurrentSection.FoundNewDay:
+                    DateTime newWeekday = DateTime.Parse(_ws.Cells[row, 1].Value?.ToString() ?? "");
 
-                    if (currentDay != null) days.Add(currentDay);
+                    if (_currentDay != null) _days.Add(_currentDay);
 
                     // I've had troubles with the columns for the times not being consistant
                     // so I've implemented a method to figure it out for the rest of the class
-                    if (days.Count == 1)
+                    if (_days.Count == 1)
                     {
                         MapTimeIndexes(row + 1);
                         daysFound = true;
                     }
-                    else if (currentDay != null)
+                    else if (_currentDay != null)
                     {
-                        var baggerShifts = currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
-                        if (baggerShifts != null) EmployeeHelpers.FillCarts(currentDay.Carts, baggerShifts, bathroomShift);
+                        var baggerShifts = _currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
+                        if (baggerShifts != null) EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift);
                     }
 
-                    currentDay = new WeekdaySchedule(newWeekday.ToString("dddd"), newWeekday);
+                    _currentDay = new WeekdaySchedule(newWeekday.ToString("dddd"), newWeekday);
                     // Reseting bathroom bagger
-                    bathroomShift = null;
-                    bathroomShiftOrder = -1;
+                    _bathroomShift = null;
+                    _bathroomShiftOrder = -1;
                     break;
-                case CurrentSection.FoundEmployee:
+                case _CurrentSection.FoundEmployee:
                     ParseEmployeeRow(row);
                     break;
 
@@ -80,32 +80,32 @@ public class XlsxConverter
 
 
         // Filling carts in for the last day
-        if (currentDay != null)
+        if (_currentDay != null)
         {
-            var baggerShifts = currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
-            if (baggerShifts != null) EmployeeHelpers.FillCarts(currentDay.Carts, baggerShifts, bathroomShift);
+            var baggerShifts = _currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
+            if (baggerShifts != null) EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift);
         }
-        return days;
+        return _days;
     }
 
-    private CurrentSection IdentifyRow(int row, bool daysFound)
+    private _CurrentSection IdentifyRow(int row, bool daysFound)
     {
-        if (dayOfWeekRegex.IsMatch(ws.Cells[row, 1].Value?.ToString() ?? ""))
-            return CurrentSection.FoundNewDay;
-        else if (daysFound && nameRegex.IsMatch(ws.Cells[row, nameColumn].Value?.ToString() ?? ""))
-            return CurrentSection.FoundEmployee;
-        return CurrentSection.FoundNothing;
+        if (_dayOfWeekRegex.IsMatch(_ws.Cells[row, 1].Value?.ToString() ?? ""))
+            return _CurrentSection.FoundNewDay;
+        else if (daysFound && _nameRegex.IsMatch(_ws.Cells[row, _nameColumn].Value?.ToString() ?? ""))
+            return _CurrentSection.FoundEmployee;
+        return _CurrentSection.FoundNothing;
     }
 
     private void ParseEmployeeRow(int row)
     {
-        if (currentDay == null) throw new ArgumentNullException("currentDay should not be null");
+        if (_currentDay == null) throw new ArgumentNullException("currentDay should not be null");
 
         var shifts = new List<(DateTime start, DateTime end, JobPosition jobPosition)>();
         string firstName, lastName;
-        var nameCellValue = ws.Cells[row, nameColumn].Value?.ToString();
+        var nameCellValue = _ws.Cells[row, _nameColumn].Value?.ToString();
 
-        if (string.IsNullOrEmpty(nameCellValue)) throw new ArgumentNullException($"Name cell at row:{row} column:{nameColumn} was null");
+        if (string.IsNullOrEmpty(nameCellValue)) throw new ArgumentNullException($"Name cell at row:{row} column:{_nameColumn} was null");
 
         (firstName, lastName) = StringFixer.GetFirstAndLastName(nameCellValue);
         // Try to match employee from database here
@@ -127,10 +127,10 @@ public class XlsxConverter
         // Finding end of shift
 
         int jobEndColumn = 0;
-        for (int col = colCount; col > 1; col--)
+        for (int col = _colCount; col > 1; col--)
         {
             // Actual time ending would be the cell right after the last filled cell, hence col - 1 for all checks
-            fillColor = ws.Cells[row, col - 1].Style.Fill.BackgroundColor.Rgb;
+            fillColor = _ws.Cells[row, col - 1].Style.Fill.BackgroundColor.Rgb;
             if (fillColor == JobFinder.jobCellFillRgb)
             {
                 jobEndColumn = col;
@@ -139,12 +139,12 @@ public class XlsxConverter
         }
 
         // Fixing any problems caused by nefarious merged time cells
-        if (!timeIndex.ContainsKey(jobEndColumn))
+        if (!_timeIndex.ContainsKey(jobEndColumn))
         {
             jobEndColumn--;
-            if (!timeIndex.ContainsKey(jobEndColumn)) throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
+            if (!_timeIndex.ContainsKey(jobEndColumn)) throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
         }
-        DateTime wholeShiftEnd = timeIndex[jobEndColumn];
+        DateTime wholeShiftEnd = _timeIndex[jobEndColumn];
 
         List<(string? jobKey, int jobStartColumn)> jobKeys = new();
         int firstJobKeyColumn = 0;
@@ -153,10 +153,10 @@ public class XlsxConverter
 
         for (int col = 1; col <= jobEndColumn; col++)
         {
-            fillColor = ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
+            fillColor = _ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
             if (fillColor == JobFinder.jobCellFillRgb)
             {
-                string? currentKey = ws.Cells[row, col].Value?.ToString();
+                string? currentKey = _ws.Cells[row, col].Value?.ToString();
                 if (jobKeys.Count < 1)
                 {
                     jobKeys.Add((currentKey, col));
@@ -178,7 +178,7 @@ public class XlsxConverter
             throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
         }
 
-        DateTime wholeShiftStart = timeIndex[firstJobKeyColumn];
+        DateTime wholeShiftStart = _timeIndex[firstJobKeyColumn];
 
         var startingJobPosition = FindJobPosition(jobKeys[0].jobKey, row);
         // Get split shifts here
@@ -186,14 +186,14 @@ public class XlsxConverter
         {
             if(i == 0)
             {
-                var firstShiftEnd = i == jobKeys.Count - 1 ? wholeShiftEnd : timeIndex[jobKeys[i + 1].jobStartColumn];
+                var firstShiftEnd = i == jobKeys.Count - 1 ? wholeShiftEnd : _timeIndex[jobKeys[i + 1].jobStartColumn];
                 shifts.Add((wholeShiftStart, firstShiftEnd, startingJobPosition));
             } else if(i == jobKeys.Count - 1)
             {
-                shifts.Add((timeIndex[jobKeys[i].jobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].jobKey, row)));
+                shifts.Add((_timeIndex[jobKeys[i].jobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].jobKey, row)));
             } else
             {
-                shifts.Add((timeIndex[jobKeys[i].jobStartColumn], timeIndex[jobKeys[i + 1].jobStartColumn], FindJobPosition(jobKeys[i].jobKey, row)));
+                shifts.Add((_timeIndex[jobKeys[i].jobStartColumn], _timeIndex[jobKeys[i + 1].jobStartColumn], FindJobPosition(jobKeys[i].jobKey, row)));
             }
         }
 
@@ -206,7 +206,7 @@ public class XlsxConverter
         // Getting breaks for front end employees
         if (shifts.Any(shift => shift.jobPosition.Name.Contains("Front")))
         {
-            bool isAdult = employeePreferences.Birthday.HasValue ? (currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
+            bool isAdult = employeePreferences.Birthday.HasValue ? (_currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
             (breakOne, lunch, breakTwo) = EmployeeHelpers.GetBreaks(
                 wholeShiftStart, wholeShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
         }
@@ -216,7 +216,7 @@ public class XlsxConverter
             var shiftBreakOne = breakOne != null && breakOne.Value.TimeOfDay >= shift.start.TimeOfDay && breakOne.Value.TimeOfDay < shift.end.TimeOfDay ? breakOne : null;
             var shiftLunch = lunch != null && lunch.Value.TimeOfDay >= shift.start.TimeOfDay && lunch.Value.TimeOfDay < shift.end.TimeOfDay ? lunch : null;
             var shiftBreakTwo = breakTwo != null && breakTwo.Value.TimeOfDay >= shift.start.TimeOfDay && breakTwo.Value.TimeOfDay < shift.end.TimeOfDay ? breakTwo : null;
-            string? jobColumnValue = ws.Cells[row, jobColumn].Value?.ToString();
+            string? jobColumnValue = _ws.Cells[row, _jobColumn].Value?.ToString();
 
             // Actual shift processing done here
             CreateAndAddShift(employeePreferences.PreferredFirstName ?? employeePreferences.FirstName, employeePreferences.LastName
@@ -234,7 +234,7 @@ public class XlsxConverter
             jobName = "File Clerk";
         
         else if (jobKey == "F")
-            jobName = ws.Cells[row, jobColumn].Value?.ToString();
+            jobName = _ws.Cells[row, _jobColumn].Value?.ToString();
         
         else if (JobFinder.jobKeys.ContainsKey(jobKey))
             jobName = JobFinder.jobKeys[jobKey];
@@ -243,15 +243,15 @@ public class XlsxConverter
             jobName = "Miscellaneous";
         
 
-        if (currentDay == null){
+        if (_currentDay == null){
             throw new NullReferenceException("currentDay was not found and cannot be null"); 
         }
 
-        var jobPosition = currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
+        var jobPosition = _currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
         if (jobPosition == null && !string.IsNullOrEmpty(jobName))
         {
             jobPosition = new JobPosition(jobName);
-            currentDay.JobPositions.Add(jobPosition);
+            _currentDay.JobPositions.Add(jobPosition);
         } else
         {
             jobPosition = new JobPosition(jobName);
@@ -276,10 +276,10 @@ public class XlsxConverter
         jobPosition.Shifts.Add(newShift);
 
         // Getting the most appropriate bagger for restrooms
-        if (jobPosition.Name.Contains("Courtesy") && jobColumnValue.Contains("Courtesy") && shiftStart.Hour <= 7 && bathroomOrder != 0 && (bathroomShiftOrder == -1 || bathroomOrder < bathroomShiftOrder))
+        if (jobPosition.Name.Contains("Courtesy") && jobColumnValue.Contains("Courtesy") && shiftStart.Hour <= 7 && bathroomOrder != 0 && (_bathroomShiftOrder == -1 || bathroomOrder < _bathroomShiftOrder))
         {
-            bathroomShift = newShift;
-            bathroomShiftOrder = bathroomOrder;
+            _bathroomShift = newShift;
+            _bathroomShiftOrder = bathroomOrder;
         }
 
     }
@@ -289,14 +289,14 @@ public class XlsxConverter
         bool foundTimes = false;
         bool previousCellWasMerged = false;
         DateTime lastTimeFound = new DateTime(); // Cannot be null due to order of cell checks
-        for (int col = 1; col <= colCount; col++)
+        for (int col = 1; col <= _colCount; col++)
         {
             // Checking for 15 minute increments after getting to the time columns which are always null
             // Necessary to check row below as each hour label is merged
-            if (foundTimes && ws.Cells[row, col].Value is null)
+            if (foundTimes && _ws.Cells[row, col].Value is null)
             {
                 // Columns are sometimes merged causing unneeded stress trying to working around it
-                if (ws.Cells[row + 1, col].Merge)
+                if (_ws.Cells[row + 1, col].Merge)
                 {
                     if (previousCellWasMerged)
                     {
@@ -307,61 +307,51 @@ public class XlsxConverter
                     {
                         previousCellWasMerged = true;
                         lastTimeFound = lastTimeFound.AddMinutes(15);
-                        timeIndex.Add(col, lastTimeFound);
+                        _timeIndex.Add(col, lastTimeFound);
                     }
                 }
                 else
                 {
                     previousCellWasMerged = false;
                     lastTimeFound = lastTimeFound.AddMinutes(15);
-                    timeIndex.Add(col, lastTimeFound);
+                    _timeIndex.Add(col, lastTimeFound);
                 }
             }
 
-            if (locationColumn == 0 && ws.Cells[row, col].Value?.ToString() == "Location")
+            if (_locationColumn == 0 && _ws.Cells[row, col].Value?.ToString() == "Location")
             {
-                locationColumn = col;
+                _locationColumn = col;
                 continue;
             }
-            if (nameColumn == 0 && ws.Cells[row, col].Value?.ToString() == "Name")
+            if (_nameColumn == 0 && _ws.Cells[row, col].Value?.ToString() == "Name")
             {
-                nameColumn = col;
+                _nameColumn = col;
                 continue;
             }
-            if (jobColumn == 0 && ws.Cells[row, col].Value?.ToString() == "Job")
+            if (_jobColumn == 0 && _ws.Cells[row, col].Value?.ToString() == "Job")
             {
-                jobColumn = col;
+                _jobColumn = col;
                 continue;
             }
-            if (startColumn == 0 && ws.Cells[row, col].Value?.ToString() == "Start")
+            if (_startColumn == 0 && _ws.Cells[row, col].Value?.ToString() == "Start")
             {
-                startColumn = col;
+                _startColumn = col;
                 continue;
             }
-            if (endColumn == 0 && ws.Cells[row, col].Value?.ToString() == "End")
+            if (_endColumn == 0 && _ws.Cells[row, col].Value?.ToString() == "End")
             {
-                endColumn = col;
+                _endColumn = col;
                 continue;
             }
 
             double dateNum;
-            if (double.TryParse(ws.Cells[row, col].Value?.ToString(), out dateNum))
+            if (double.TryParse(_ws.Cells[row, col].Value?.ToString(), out dateNum))
             {
                 lastTimeFound = DateTime.FromOADate(dateNum);
-                timeIndex.Add(col, lastTimeFound);
-                previousCellWasMerged = ws.Cells[row + 1, col].Merge;
+                _timeIndex.Add(col, lastTimeFound);
+                previousCellWasMerged = _ws.Cells[row + 1, col].Merge;
             }
-            if (!foundTimes && timeIndex.Count > 0) foundTimes = true;
-        }
-    }
-
-    private ExcelWorksheet LoadWorkbookFromStream(Stream stream)
-    {
-        using (ExcelPackage package = new ExcelPackage(stream))
-        {
-            var ws = package.Workbook.Worksheets[0];
-            if (ws == null) throw new NullReferenceException("No usable worksheet was found");
-            return ws;
+            if (!foundTimes && _timeIndex.Count > 0) foundTimes = true;
         }
     }
 }
