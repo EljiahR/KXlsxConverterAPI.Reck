@@ -149,7 +149,7 @@ public class XlsxConverter
         List<(string? jobKey, int jobStartColumn)> jobKeys = new();
         int firstJobKeyColumn = 0;
 
-        // Finding beginning of shift  
+        // Finding beginning of shift and all splits 
 
         for (int col = 1; col <= jobEndColumn; col++)
         {
@@ -163,10 +163,8 @@ public class XlsxConverter
                     firstJobKeyColumn = col;
                 }
                     
-                else if(!JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().jobKey)
+                else if(currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().jobKey)
                     jobKeys.Add((currentKey, col));
-
-
             }
         }
         // Throwing error if jobStartColumn was never found
@@ -186,13 +184,22 @@ public class XlsxConverter
         // Get split shifts here
         for (int i = 0; i < jobKeys.Count; i++)
         {
-            // CONTINUE FROM HERE, WIFE BEING PETTY
+            if(i == 0)
+            {
+                var firstShiftEnd = i == jobKeys.Count - 1 ? wholeShiftEnd : timeIndex[jobKeys[i + 1].jobStartColumn];
+                shifts.Add((wholeShiftStart, firstShiftEnd, startingJobPosition));
+            } else if(i == jobKeys.Count - 1)
+            {
+                shifts.Add((timeIndex[jobKeys[i].jobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].jobKey, row)));
+            } else
+            {
+                shifts.Add((timeIndex[jobKeys[i].jobStartColumn], timeIndex[jobKeys[i + 1].jobStartColumn], FindJobPosition(jobKeys[i].jobKey, row)));
+            }
         }
 
 
-        // Match / Create JobPosition based on jobKey
-
-
+        // Prepare shifts for being processed into currentDay
+        
         DateTime? breakOne = null;
         DateTime? lunch = null;
         DateTime? breakTwo = null;
@@ -209,9 +216,11 @@ public class XlsxConverter
             var shiftBreakOne = breakOne != null && breakOne.Value.TimeOfDay >= shift.start.TimeOfDay && breakOne.Value.TimeOfDay < shift.end.TimeOfDay ? breakOne : null;
             var shiftLunch = lunch != null && lunch.Value.TimeOfDay >= shift.start.TimeOfDay && lunch.Value.TimeOfDay < shift.end.TimeOfDay ? lunch : null;
             var shiftBreakTwo = breakTwo != null && breakTwo.Value.TimeOfDay >= shift.start.TimeOfDay && breakTwo.Value.TimeOfDay < shift.end.TimeOfDay ? breakTwo : null;
+            string? jobColumnValue = ws.Cells[row, jobColumn].Value?.ToString();
 
+            // Actual shift processing done here
             CreateAndAddShift(employeePreferences.PreferredFirstName ?? employeePreferences.FirstName, employeePreferences.LastName
-                , shift.start, shift.end, shiftBreakOne.GetValueOrDefault(), shiftLunch.GetValueOrDefault()
+                , jobColumnValue ?? "", shift.start, shift.end, shiftBreakOne.GetValueOrDefault(), shiftLunch.GetValueOrDefault()
                 , shiftBreakTwo.GetValueOrDefault(), shift.jobPosition, employeePreferences.BathroomOrder);
         }
 
@@ -251,7 +260,7 @@ public class XlsxConverter
     }
 
 
-    private void CreateAndAddShift(string firstName, string lastName, DateTime shiftStart
+    private void CreateAndAddShift(string firstName, string lastName,string jobColumnValue, DateTime shiftStart
         , DateTime shiftEnd, DateTime breakOne, DateTime lunch, DateTime breakTwo, JobPosition jobPosition, int bathroomOrder)
     {
         var newShift = new Shift();
@@ -267,7 +276,7 @@ public class XlsxConverter
         jobPosition.Shifts.Add(newShift);
 
         // Getting the most appropriate bagger for restrooms
-        if (jobPosition.Name.Contains("Courtesy") && shiftStart.Hour <= 7 && bathroomOrder != 0 && (bathroomShiftOrder == -1 || bathroomOrder < bathroomShiftOrder))
+        if (jobPosition.Name.Contains("Courtesy") && jobColumnValue.Contains("Courtesy") && shiftStart.Hour <= 7 && bathroomOrder != 0 && (bathroomShiftOrder == -1 || bathroomOrder < bathroomShiftOrder))
         {
             bathroomShift = newShift;
             bathroomShiftOrder = bathroomOrder;
