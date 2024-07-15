@@ -56,7 +56,7 @@ public class XlsxConverter
 
                     // I've had troubles with the columns for the times not being consistant
                     // so I've implemented a method to figure it out for the rest of the class
-                    if (_days.Count == 1)
+                    if (_days.Count < 1)
                     {
                         MapTimeIndexes(row + 1);
                         daysFound = true;
@@ -162,9 +162,15 @@ public class XlsxConverter
                     jobKeys.Add((currentKey, col));
                     firstJobKeyColumn = col;
                 }
-                    
                 else if(currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().jobKey)
-                    jobKeys.Add((currentKey, col));
+                {
+                    var previousJobName = JobFinder.jobKeys[jobKeys.Last().jobKey ?? ""];
+                    var currentJobName = JobFinder.jobKeys[currentKey];
+
+                    if(!(previousJobName.Contains("Front") && currentJobName.Contains("Front")))
+                        jobKeys.Add((currentKey, col));
+                }
+                    
             }
         }
         // Throwing error if jobStartColumn was never found
@@ -220,8 +226,8 @@ public class XlsxConverter
 
             // Actual shift processing done here
             CreateAndAddShift(employeePreferences.PreferredFirstName ?? employeePreferences.FirstName, employeePreferences.LastName
-                , jobColumnValue ?? "", shift.start, shift.end, shiftBreakOne.GetValueOrDefault(), shiftLunch.GetValueOrDefault()
-                , shiftBreakTwo.GetValueOrDefault(), shift.jobPosition, employeePreferences.BathroomOrder);
+                , jobColumnValue ?? "", shift.start, shift.end, shiftBreakOne, shiftLunch
+                , shiftBreakTwo, shift.jobPosition, employeePreferences.BathroomOrder);
         }
 
     }
@@ -248,20 +254,19 @@ public class XlsxConverter
         }
 
         var jobPosition = _currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
-        if (jobPosition == null && !string.IsNullOrEmpty(jobName))
+        if (jobPosition == null)
         {
             jobPosition = new JobPosition(jobName);
             _currentDay.JobPositions.Add(jobPosition);
-        } else
-        {
-            jobPosition = new JobPosition(jobName);
         }
+            
+
         return jobPosition;
     }
 
 
     private void CreateAndAddShift(string firstName, string lastName,string jobColumnValue, DateTime shiftStart
-        , DateTime shiftEnd, DateTime breakOne, DateTime lunch, DateTime breakTwo, JobPosition jobPosition, int bathroomOrder)
+        , DateTime shiftEnd, DateTime? breakOne, DateTime? lunch, DateTime? breakTwo, JobPosition jobPosition, int bathroomOrder)
     {
         var newShift = new Shift();
 
