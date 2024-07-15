@@ -99,6 +99,8 @@ public class XlsxConverter
 
     private void ParseEmployeeRow(int row)
     {
+        if (currentDay == null) throw new ArgumentNullException("currentDay should not be null");
+
         var shifts = new List<(DateTime start, DateTime end, JobPosition jobPosition)>();
         string firstName, lastName;
         var nameCellValue = ws.Cells[row, nameColumn].Value?.ToString();
@@ -120,51 +122,20 @@ public class XlsxConverter
             employeePreferences.LastName = StringFixer.GetProperCase(lastName);
         }
 
-        string? jobKey = "";
         string? fillColor;
-        int jobStartColumn = 0;
-        // Finding beginning of shift  
-        for (int col = 1; col <= colCount; col++)
-        {
-            fillColor = ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
-            if (fillColor == JobFinder.jobCellFillRgb)
-            {
-                jobKey = ws.Cells[row, col].Value?.ToString();
-                jobStartColumn = col;
-                break;
-            }
-        }
-        // Throwing error if jobStartColumn was never found
-        if (jobStartColumn == 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(jobStartColumn));
-        }
-        // Plugging in found info
-
-
-        DateTime wholeShiftStart = timeIndex[jobStartColumn];
-
 
         // Finding end of shift
 
         int jobEndColumn = 0;
-        bool shiftDoesSplit = false;
         for (int col = colCount; col > 1; col--)
         {
             // Actual time ending would be the cell right after the last filled cell, hence col - 1 for all checks
             fillColor = ws.Cells[row, col - 1].Style.Fill.BackgroundColor.Rgb;
             if (fillColor == JobFinder.jobCellFillRgb)
             {
-                shiftDoesSplit = ws.Cells[row, col - 1].Value?.ToString() != jobKey;
                 jobEndColumn = col;
                 break;
             }
-        }
-
-        // Throwing error when end is not found, end should always be greater
-        if (jobEndColumn <= jobStartColumn)
-        {
-            throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
         }
 
         // Fixing any problems caused by nefarious merged time cells
@@ -175,38 +146,62 @@ public class XlsxConverter
         }
         DateTime wholeShiftEnd = timeIndex[jobEndColumn];
 
+        List<(string? jobKey, int jobStartColumn)> jobKeys = new();
+        int firstJobKeyColumn = 0;
+
+        // Finding beginning of shift  
+
+        for (int col = 1; col <= jobEndColumn; col++)
+        {
+            fillColor = ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
+            if (fillColor == JobFinder.jobCellFillRgb)
+            {
+                string? currentKey = ws.Cells[row, col].Value?.ToString();
+                if (jobKeys.Count < 1)
+                {
+                    jobKeys.Add((currentKey, col));
+                    firstJobKeyColumn = col;
+                }
+                    
+                else if(!JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().jobKey)
+                    jobKeys.Add((currentKey, col));
+
+
+            }
+        }
+        // Throwing error if jobStartColumn was never found
+        if (firstJobKeyColumn == 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(firstJobKeyColumn));
+        }
+        // Throwing error when end is not found, end should always be greater
+        if (jobEndColumn <= firstJobKeyColumn)
+        {
+            throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
+        }
+
+        DateTime wholeShiftStart = timeIndex[firstJobKeyColumn];
+
+        var startingJobPosition = FindJobPosition(jobKeys[0].jobKey, row);
         // Get split shifts here
-
-
-        // Add shift to existing JobPosition in current day, else create it
-
-        string? jobName = string.Empty;
-        // File's job key is null as of making this and I could not think of anything other than hardcoding it
-        if (string.IsNullOrEmpty(jobKey)) jobName = "File Clerk";
-        else if (jobKey == "F")
+        for (int i = 0; i < jobKeys.Count; i++)
         {
-            jobName = ws.Cells[row, jobColumn].Value?.ToString();
+            // CONTINUE FROM HERE, WIFE BEING PETTY
         }
-        else if (JobFinder.jobKeys.ContainsKey(jobKey)) jobName = JobFinder.jobKeys[jobKey];
 
-        if (currentDay == null) throw new NullReferenceException("currentDay was not found and cannot be null");
-        var jobPosition = currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
-        if (jobPosition == null && !string.IsNullOrEmpty(jobName))
-        {
-            jobPosition = new JobPosition(jobName);
-            currentDay.JobPositions.Add(jobPosition);
-        }
+
+        // Match / Create JobPosition based on jobKey
+
 
         DateTime? breakOne = null;
         DateTime? lunch = null;
         DateTime? breakTwo = null;
         // Getting breaks for front end employees
-        if (!string.IsNullOrEmpty(jobName) && jobName.Contains("Front"))
+        if (shifts.Any(shift => shift.jobPosition.Name.Contains("Front")))
         {
             bool isAdult = employeePreferences.Birthday.HasValue ? (currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
             (breakOne, lunch, breakTwo) = EmployeeHelpers.GetBreaks(
                 wholeShiftStart, wholeShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
-
         }
 
         foreach (var shift in shifts)
@@ -221,6 +216,40 @@ public class XlsxConverter
         }
 
     }
+
+    private JobPosition FindJobPosition(string? jobKey, int row)
+    {
+        string? jobName = string.Empty;
+        // File's job key is null as of making this and I could not think of anything other than hardcoding it
+        if (string.IsNullOrEmpty(jobKey))
+            jobName = "File Clerk";
+        
+        else if (jobKey == "F")
+            jobName = ws.Cells[row, jobColumn].Value?.ToString();
+        
+        else if (JobFinder.jobKeys.ContainsKey(jobKey))
+            jobName = JobFinder.jobKeys[jobKey];
+        
+        if(string.IsNullOrEmpty(jobName))
+            jobName = "Miscellaneous";
+        
+
+        if (currentDay == null){
+            throw new NullReferenceException("currentDay was not found and cannot be null"); 
+        }
+
+        var jobPosition = currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
+        if (jobPosition == null && !string.IsNullOrEmpty(jobName))
+        {
+            jobPosition = new JobPosition(jobName);
+            currentDay.JobPositions.Add(jobPosition);
+        } else
+        {
+            jobPosition = new JobPosition(jobName);
+        }
+        return jobPosition;
+    }
+
 
     private void CreateAndAddShift(string firstName, string lastName, DateTime shiftStart
         , DateTime shiftEnd, DateTime breakOne, DateTime lunch, DateTime breakTwo, JobPosition jobPosition, int bathroomOrder)
