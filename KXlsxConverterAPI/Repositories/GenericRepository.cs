@@ -28,6 +28,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
     public void Delete(TEntity entity)
     {
         _dbSet.Remove(entity);
+        SaveChanges();
     }
 
     public IEnumerable<TEntity> GetAll()
@@ -40,14 +41,14 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         return _dbSet.Find(id);
     }
 
-    public void SaveChanges()
-    {
-        _context.SaveChanges();
-    }
-
     public void Update(TEntity entity)
     {
         _dbSet.Update(entity);
         SaveChanges();
+    }
+
+    public void SaveChanges()
+    {
+        _context.SaveChanges();
     }
 }

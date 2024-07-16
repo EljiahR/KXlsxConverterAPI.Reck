@@ -85,6 +85,7 @@ public class XlsxConverter
             var baggerShifts = _currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
             if (baggerShifts != null) EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift);
         }
+        SortAllShifts();
         return _days;
     }
 
@@ -359,5 +360,12 @@ public class XlsxConverter
             }
             if (!foundTimes && _timeIndex.Count > 0) foundTimes = true;
         }
+    }
+
+    private void SortAllShifts()
+    {
+        foreach (var day in _days)
+            foreach (var jobPosition in day.JobPositions)
+                jobPosition.Shifts.Sort((x,y) => x.ShiftStart.CompareTo(y.ShiftStart));
     }
 }
