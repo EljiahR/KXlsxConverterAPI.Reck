@@ -58,7 +58,8 @@ public class EmployeeController : Controller
         {
             _service.AddEmployeeBatch(employees);
             return Created();
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             Console.Error.WriteLine(ex);
             return BadRequest("Error with employee format");
@@ -98,15 +99,15 @@ public class EmployeeController : Controller
         {
             await file.CopyToAsync(stream);
             stream.Position = 0;
-            using (ExcelPackage package = new ExcelPackage(stream)) 
+            using (ExcelPackage package = new ExcelPackage(stream))
             {
                 var ws = package.Workbook.Worksheets[0];
                 if (ws == null) throw new NullReferenceException("No usable worksheet was found");
                 XlsxConverter converter = new XlsxConverter(allEmployees, ws);
                 fixedSchedule = converter.ConvertXlsx();
             }
-            
-            
+
+
         }
 
         return Ok(fixedSchedule);
@@ -118,7 +119,36 @@ public class EmployeeController : Controller
         {
             _service.DeleteEmployee(employee);
             return Ok();
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"{ex.Message}; Employee not found, unable to delete");
+        }
+    }
+    [HttpDelete]
+    [Route("All")]
+    public IActionResult DeleteAllEmployees()
+    {
+        try
+        {
+            _service.DeleteAllEmployees();
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"{ex.Message}; Employee not found, unable to delete");
+        }
+    }
+    [HttpDelete]
+    [Route("{division}/{storeNumber}")]
+    public IActionResult DeleteAllByDivisionAndStoreNumber(int division, int storeNumber)
+    {
+        try
+        {
+            _service.DeleteAllByDivisionAndStoreNumber(division, storeNumber);
+            return Ok();
+        }
+        catch (Exception ex)
         {
             return BadRequest($"{ex.Message}; Employee not found, unable to delete");
         }

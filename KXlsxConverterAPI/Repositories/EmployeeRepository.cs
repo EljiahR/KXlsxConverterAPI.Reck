@@ -12,5 +12,10 @@ namespace KXlsxConverterAPI.Repositories
         {
             return _dbSet.Where(e => e.Division == division && e.StoreNumber == storeNumber).ToList();
         }
+        public void DeleteAllByDivisionAndStoreNumber(int division, int storeNumber)
+        {
+            var employeesToDelete = GetAllByDivisionAndStoreNumber(division, storeNumber);
+            _dbSet.RemoveRange(employeesToDelete);
+        }
     }
 }

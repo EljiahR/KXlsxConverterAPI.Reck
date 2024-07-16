@@ -10,6 +10,8 @@ namespace KXlsxConverterAPI.Services
         void AddEmployee(Employee employee);
         void AddEmployeeBatch(List<Employee> employees);
         void DeleteEmployee(Employee employee);
+        void DeleteAllEmployees();
+        void DeleteAllByDivisionAndStoreNumber(int division, int storeNumber);
         void UpdateEmployee(Employee employee);
     }
 }

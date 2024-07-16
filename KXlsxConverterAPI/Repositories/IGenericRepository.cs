@@ -7,6 +7,7 @@ public interface IGenericRepository<TEntity>
     void Add(TEntity entity);
     void AddAll(IEnumerable<TEntity> entities);
     void Delete(TEntity entity);
+    void DeleteAll();
     void Update(TEntity entity);
     void SaveChanges();
 }

@@ -31,6 +31,12 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         SaveChanges();
     }
 
+    public void DeleteAll()
+    {
+        _context.RemoveRange(_dbSet);
+        SaveChanges();
+    }
+
     public IEnumerable<TEntity> GetAll()
     {
         return _dbSet.ToList();

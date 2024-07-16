@@ -25,6 +25,16 @@ namespace KXlsxConverterAPI.Services
             _employeeRepository.Delete(employee);
         }
 
+        public void DeleteAllEmployees()
+        {
+            _employeeRepository.DeleteAll();
+        }
+
+        public void DeleteAllByDivisionAndStoreNumber(int division, int storeNumber)
+        {
+            _employeeRepository.DeleteAllByDivisionAndStoreNumber(division, storeNumber);
+        }
+
         public IEnumerable<Employee> GetAllByDivisionAndStoreNumber(int division, int storeNumber)
         { 
             return _employeeRepository.GetAllByDivisionAndStoreNumber(division, storeNumber);
