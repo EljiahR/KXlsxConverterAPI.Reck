@@ -16,11 +16,11 @@
             // Common jobs for front end employees to have a split shift with
             {"Z", "Fuel Clerk" },
             {"L", "Liquor Clerk" },
-
+            {"W", "Liquor Clerk" }, // Actually Wine/Beer Steward but thats not necessary to know
             // Job keys that are typically used as call ups for front end
             {"C", "HBC Clerk" },
             {"M", "GM MrktPlc Clk" }, // Not sure why so heavily shortened
-            {"8", "File Clerk" }, // Not the actual key, which is null, just don't want to leave it out yet
+            {"", "File Clerk" }, // Actual key is null
             {"F", "Floral Clerk" },
             {"A", "Apparel Clerk" } // Has recently been F for some reason, overlapping with Floral
         };

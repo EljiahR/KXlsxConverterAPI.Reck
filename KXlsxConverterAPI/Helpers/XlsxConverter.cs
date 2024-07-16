@@ -164,10 +164,11 @@ public class XlsxConverter
                 }
                 else if(currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().jobKey)
                 {
+                    
                     var previousJobName = JobFinder.jobKeys[jobKeys.Last().jobKey ?? ""];
                     var currentJobName = JobFinder.jobKeys[currentKey];
 
-                    if(!(previousJobName.Contains("Front") && currentJobName.Contains("Front")))
+                    if(!(previousJobName.Contains("Front") && currentJobName.Contains("Front")) && previousJobName != currentJobName)
                         jobKeys.Add((currentKey, col));
                 }
                     
