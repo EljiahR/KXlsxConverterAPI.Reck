@@ -85,9 +85,16 @@ public class EmployeeHelpers
             if (indexKey.ContainsKey(Baggers.Shifts[i].FirstName))
             {
                 int existingNameIndex = indexKey[Baggers.Shifts[i].FirstName];
-                nameKey[existingNameIndex] = nameKey[existingNameIndex] + " " + Baggers.Shifts[existingNameIndex].LastName.Substring(0, 1);
 
-                nameKey.Add(i, Baggers.Shifts[i].FirstName + " " + Baggers.Shifts[i].LastName.Substring(0, 1));
+                string thisBaggerName = Baggers.Shifts[i].FirstName + " " + Baggers.Shifts[i].LastName.Substring(0, 1);
+                string otherBaggerName = nameKey[existingNameIndex] + " " + Baggers.Shifts[existingNameIndex].LastName.Substring(0, 1);
+
+                Baggers.Shifts[i].BaggerName = thisBaggerName;
+                Baggers.Shifts[existingNameIndex].BaggerName = otherBaggerName;
+
+                nameKey[existingNameIndex] = otherBaggerName;
+
+                nameKey.Add(i, thisBaggerName);
             }
             else
             {

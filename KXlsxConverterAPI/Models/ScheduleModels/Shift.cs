@@ -4,6 +4,7 @@
     {
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        public string BaggerName {  get; set; } = string.Empty;
         public DateTime ShiftStart { get; set; }
         public DateTime ShiftEnd { get; set; }
         public DateTime? BreakOne { get; set; } = null;

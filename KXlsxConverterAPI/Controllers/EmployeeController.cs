@@ -84,33 +84,41 @@ public class EmployeeController : Controller
     [Route("Dailies/{division}/{storeNumber}")]
     public async Task<IActionResult> PostSchedule(IFormFile file, int division, int storeNumber)
     {
-        if (file == null || file.Length == 0)
+        try
         {
-            return BadRequest("No file uploaded or file empty");
-        }
-        if (!string.Equals(System.IO.Path.GetExtension(file.FileName), ".xlsx"))
-        {
-            return BadRequest($"Wrong file type uploaded, {System.IO.Path.GetExtension(file.FileName)} not accepted");
-        }
-
-        var allEmployees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber); // Ok if empty
-        List<WeekdaySchedule> fixedSchedule = new();
-        using (var stream = new MemoryStream())
-        {
-            await file.CopyToAsync(stream);
-            stream.Position = 0;
-            using (ExcelPackage package = new ExcelPackage(stream))
+            if (file == null || file.Length == 0)
             {
-                var ws = package.Workbook.Worksheets[0];
-                if (ws == null) throw new NullReferenceException("No usable worksheet was found");
-                XlsxConverter converter = new XlsxConverter(allEmployees, ws);
-                fixedSchedule = converter.ConvertXlsx();
+                return BadRequest("No file uploaded or file empty");
+            }
+            if (!string.Equals(System.IO.Path.GetExtension(file.FileName), ".xlsx"))
+            {
+                return BadRequest($"Wrong file type uploaded, {System.IO.Path.GetExtension(file.FileName)} not accepted");
             }
 
+            var allEmployees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber); // Ok if empty
+            List<WeekdaySchedule> fixedSchedule = new();
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+                using (ExcelPackage package = new ExcelPackage(stream))
+                {
+                    var ws = package.Workbook.Worksheets[0];
+                    if (ws == null) throw new NullReferenceException("No usable worksheet was found");
+                    XlsxConverter converter = new XlsxConverter(allEmployees, ws);
+                    fixedSchedule = converter.ConvertXlsx();
+                }
 
+
+            }
+
+            return Ok(fixedSchedule);
         }
-
-        return Ok(fixedSchedule);
+        catch (Exception ex)
+        { 
+            return BadRequest(ex.Message);
+        }
+        
     }
     [HttpDelete]
     public IActionResult DeleteEmployee(Employee employee)
