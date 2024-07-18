@@ -273,6 +273,7 @@ public class XlsxConverter
         var newShift = new Shift();
 
         newShift.FirstName = firstName;
+        newShift.BaggerName = firstName;
         newShift.LastName = lastName;
         newShift.ShiftStart = shiftStart;
         newShift.ShiftEnd = shiftEnd;
