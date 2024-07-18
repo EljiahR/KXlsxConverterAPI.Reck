@@ -84,6 +84,7 @@ public class XlsxConverter
         {
             var baggerShifts = _currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
             if (baggerShifts != null) EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift);
+            _days.Add(_currentDay);
         }
         SortAllShifts();
         return _days;
