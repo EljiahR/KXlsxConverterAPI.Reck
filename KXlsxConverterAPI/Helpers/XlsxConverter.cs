@@ -76,7 +76,22 @@ public class XlsxConverter
                     _bathroomShiftOrder = -1;
                     break;
                 case _CurrentSection.FoundEmployee:
-                    ParseEmployeeRow(row);
+                    try
+                    {
+                        ParseEmployeeRow(row);
+                    }
+                    catch (Exception ex) 
+                    {
+                        if(_currentDay != null)
+                        {
+                            string errorType = ex.GetType().Name;
+                            if (_currentDay.Errors.ContainsKey(errorType))
+                                _currentDay.Errors[errorType].Add("Error in row " + row);
+                            else
+                                _currentDay.Errors.Add(errorType, new List<string> { "Error in row " + row });
+                        }
+                            
+                    }
                     break;
 
             }

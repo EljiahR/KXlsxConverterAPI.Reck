@@ -6,7 +6,7 @@ public class WeekdaySchedule
     public DateTime Date { get; set; }
     public List<JobPosition> JobPositions { get; set; } = new List<JobPosition>();
     public CartSlot[] Carts { get; set; } // 36 slots, starting at 6:00a + 30m until 11:30p
-    public Dictionary<string, string[]> Errors { get; set; } = new();
+    public Dictionary<string, List<string>> Errors { get; set; } = new();
     public WeekdaySchedule(string day, DateTime date)
     {
         Day = day;
