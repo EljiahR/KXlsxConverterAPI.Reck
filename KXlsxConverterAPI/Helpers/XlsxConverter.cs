@@ -1,6 +1,9 @@
 ﻿using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Models.ScheduleModels;
+using KXlsxConverterAPI.Models.ScheduleModels.Interfaces;
 using OfficeOpenXml;
+using System;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace KXlsxConverterAPI.Helpers;
@@ -260,7 +263,8 @@ public class XlsxConverter
         if (jobPosition == null)
         {
             jobPosition = new JobPosition(jobName);
-            _currentDay.JobPositions.Add(jobPosition);
+            if(jobName.Contains("Front") || jobName.Contains("Fuel") || jobName.Contains("Liquor"))
+                _currentDay.JobPositions.Add(jobPosition);
         }
             
 
@@ -269,26 +273,62 @@ public class XlsxConverter
 
 
     private void CreateAndAddShift(string firstName, string lastName,string jobColumnValue, DateTime shiftStart
-        , DateTime shiftEnd, DateTime? breakOne, DateTime? lunch, DateTime? breakTwo, JobPosition jobPosition, int bathroomOrder)
+        , DateTime shiftEnd, DateTime? breakOne, DateTime? lunch, DateTime? breakTwo, JobPosition jobPosition, int bathroomOrder, bool isCallUp)
     {
-        var newShift = new Shift();
 
-        newShift.FirstName = firstName;
-        newShift.BaggerName = firstName;
-        newShift.LastName = lastName;
-        newShift.ShiftStart = shiftStart;
-        newShift.ShiftEnd = shiftEnd;
-        newShift.BreakOne = breakOne;
-        newShift.Lunch = lunch;
-        newShift.BreakTwo = breakTwo;
-
-        jobPosition.Shifts.Add(newShift);
-
-        // Getting the most appropriate bagger for restrooms
-        if (jobPosition.Name.Contains("Courtesy") && jobColumnValue.Contains("Courtesy") && shiftStart.Hour <= 7 && bathroomOrder != 0 && (_bathroomShiftOrder == -1 || bathroomOrder < _bathroomShiftOrder))
+        if (!jobPosition.Name.Contains("Front") && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel"))
         {
-            _bathroomShift = newShift;
-            _bathroomShiftOrder = bathroomOrder;
+            if(isCallUp)
+            {
+                CallUpShift newCallUpShift = new CallUpShift();
+
+                newCallUpShift.FirstName = firstName;
+                newCallUpShift.BaggerName = firstName;
+                newCallUpShift.LastName = lastName;
+                newCallUpShift.ShiftStart = shiftStart;
+                newCallUpShift.ShiftEnd = shiftEnd;
+                newCallUpShift.BreakOne = breakOne;
+                newCallUpShift.Lunch = lunch;
+                newCallUpShift.BreakTwo = breakTwo;
+                newCallUpShift.OriginalPosition = jobPosition.Name;
+
+                if (_currentDay == null)
+                {
+                    throw new NullReferenceException("currentDay was not found and cannot be null");
+                }
+                var callUpPosition = _currentDay.JobPositions.Where(j => j.Name == "Call Ups").FirstOrDefault();
+                if (callUpPosition == null)
+                {
+                    callUpPosition = new JobPosition("Call Ups");
+                    _currentDay.JobPositions.Add(callUpPosition);
+                }
+                    
+                callUpPosition.Shifts.Add(newCallUpShift);
+
+            }
+            
+        } else
+        {
+            var newShift = new Shift();
+
+            newShift.FirstName = firstName;
+            newShift.BaggerName = firstName;
+            newShift.LastName = lastName;
+            newShift.ShiftStart = shiftStart;
+            newShift.ShiftEnd = shiftEnd;
+            newShift.BreakOne = breakOne;
+            newShift.Lunch = lunch;
+            newShift.BreakTwo = breakTwo;
+
+
+            jobPosition.Shifts.Add(newShift);
+
+            // Getting the most appropriate bagger for restrooms
+            if (jobPosition.Name.Contains("Courtesy") && jobColumnValue.Contains("Courtesy") && shiftStart.Hour <= 7 && bathroomOrder != 0 && (_bathroomShiftOrder == -1 || bathroomOrder < _bathroomShiftOrder))
+            {
+                _bathroomShift = newShift;
+                _bathroomShiftOrder = bathroomOrder;
+            }
         }
 
     }
@@ -370,4 +410,5 @@ public class XlsxConverter
             foreach (var jobPosition in day.JobPositions)
                 jobPosition.Shifts.Sort((x,y) => x.ShiftStart.CompareTo(y.ShiftStart));
     }
+
 }
