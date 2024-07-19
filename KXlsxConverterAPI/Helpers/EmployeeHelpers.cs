@@ -105,7 +105,9 @@ public class EmployeeHelpers
         // I know O(n^2), but timeSlot is a constant length
         for (int baggerIndex = 0; baggerIndex < Baggers.Shifts.Count; baggerIndex++)
         {
-            currentBagger = Baggers.Shifts[baggerIndex];
+            if (Baggers.Shifts[baggerIndex] is not Shift)
+                throw new NotSupportedException("Bagger shifts should all be Shift, not CallUpShift");
+            currentBagger = (Shift) Baggers.Shifts[baggerIndex];
             for (int timeSlot = 0; timeSlot < Carts.Length; timeSlot++)
             {
                 currentSlot = Carts[timeSlot];
@@ -129,9 +131,19 @@ public class EmployeeHelpers
     private static bool TimesOverlap(DateTime breakTime, DateTime cartTime, bool isLunch = false)
     {
         TimeSpan timeDifference;
-        if (breakTime.TimeOfDay > cartTime.TimeOfDay) timeDifference = breakTime.TimeOfDay - cartTime.TimeOfDay;
-        else timeDifference = cartTime.TimeOfDay - breakTime.TimeOfDay;
-        if (isLunch) return timeDifference.TotalHours >= 0.5;
-        else return timeDifference.TotalHours >= 0.25;
+        if (breakTime.TimeOfDay > cartTime.TimeOfDay)
+        {
+            timeDifference = breakTime.TimeOfDay - cartTime.TimeOfDay;
+            return timeDifference.TotalHours >= 0.5;
+        }
+        else
+        {
+            timeDifference = cartTime.TimeOfDay - breakTime.TimeOfDay;
+            if(isLunch)
+                return timeDifference.TotalHours >= 0.5;
+
+            return timeDifference.TotalHours >= 0.25;
+        }
+        
     }
 }

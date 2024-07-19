@@ -233,7 +233,7 @@ public class XlsxConverter
             // Actual shift processing done here
             CreateAndAddShift(employeePreferences.PreferredFirstName ?? employeePreferences.FirstName, employeePreferences.LastName
                 , jobColumnValue ?? "", shift.start, shift.end, shiftBreakOne, shiftLunch
-                , shiftBreakTwo, shift.jobPosition, employeePreferences.BathroomOrder);
+                , shiftBreakTwo, shift.jobPosition, employeePreferences.BathroomOrder, employeePreferences.IsACallUp);
         }
 
     }
