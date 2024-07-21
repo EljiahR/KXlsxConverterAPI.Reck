@@ -1,9 +1,6 @@
 ﻿using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Models.ScheduleModels;
-using KXlsxConverterAPI.Models.ScheduleModels.Interfaces;
 using OfficeOpenXml;
-using System;
-using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace KXlsxConverterAPI.Helpers;
@@ -80,9 +77,9 @@ public class XlsxConverter
                     {
                         ParseEmployeeRow(row);
                     }
-                    catch (Exception ex) 
+                    catch (Exception ex)
                     {
-                        if(_currentDay != null)
+                        if (_currentDay != null)
                         {
                             string errorType = ex.GetType().Name;
                             if (_currentDay.Errors.ContainsKey(errorType))
@@ -90,7 +87,7 @@ public class XlsxConverter
                             else
                                 _currentDay.Errors.Add(errorType, new List<string> { "Error in row " + row });
                         }
-                            
+
                     }
                     break;
 
@@ -127,7 +124,7 @@ public class XlsxConverter
 
         if (string.IsNullOrEmpty(nameCellValue)) throw new ArgumentNullException($"Name cell at row:{row} column:{_nameColumn} was null");
 
-        (firstName, lastName) = StringFixer.GetFirstAndLastName(nameCellValue);
+        (firstName, lastName) = StringHelpers.GetFirstAndLastName(nameCellValue);
         // Try to match employee from database here
         Employee? employeePreferences = _storeEmployees
             .Where(e => String.Equals(firstName, e.FirstName, StringComparison.OrdinalIgnoreCase)
@@ -138,8 +135,8 @@ public class XlsxConverter
         if (employeePreferences == null)
         {
             employeePreferences = new Employee();
-            employeePreferences.FirstName = StringFixer.GetProperCase(firstName);
-            employeePreferences.LastName = StringFixer.GetProperCase(lastName);
+            employeePreferences.FirstName = StringHelpers.GetProperCase(firstName);
+            employeePreferences.LastName = StringHelpers.GetProperCase(lastName);
         }
 
         string? fillColor;
@@ -182,16 +179,19 @@ public class XlsxConverter
                     jobKeys.Add((currentKey, col));
                     firstJobKeyColumn = col;
                 }
-                else if(currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().jobKey)
+                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().jobKey)
                 {
-                    
+
                     var previousJobName = JobFinder.jobKeys[jobKeys.Last().jobKey ?? ""];
                     var currentJobName = JobFinder.jobKeys[currentKey];
 
-                    if(!(previousJobName.Contains("Front") && currentJobName.Contains("Front")) && previousJobName != currentJobName)
+                    if (!(previousJobName.Contains("Front") && currentJobName.Contains("Front"))
+                        && !(!StringHelpers.ContainsOne(previousJobName, ["Front", "Fuel", "Liquor"]) && !StringHelpers.ContainsOne(currentJobName, ["Front", "Fuel", "Liquor"]))
+                        && previousJobName != currentJobName)
+                        
                         jobKeys.Add((currentKey, col));
                 }
-                    
+
             }
         }
         // Throwing error if jobStartColumn was never found
@@ -211,14 +211,16 @@ public class XlsxConverter
         // Get split shifts here
         for (int i = 0; i < jobKeys.Count; i++)
         {
-            if(i == 0)
+            if (i == 0)
             {
                 var firstShiftEnd = i == jobKeys.Count - 1 ? wholeShiftEnd : _timeIndex[jobKeys[i + 1].jobStartColumn];
                 shifts.Add((wholeShiftStart, firstShiftEnd, startingJobPosition));
-            } else if(i == jobKeys.Count - 1)
+            }
+            else if (i == jobKeys.Count - 1)
             {
                 shifts.Add((_timeIndex[jobKeys[i].jobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].jobKey, row)));
-            } else
+            }
+            else
             {
                 shifts.Add((_timeIndex[jobKeys[i].jobStartColumn], _timeIndex[jobKeys[i + 1].jobStartColumn], FindJobPosition(jobKeys[i].jobKey, row)));
             }
@@ -226,7 +228,7 @@ public class XlsxConverter
 
 
         // Prepare shifts for being processed into currentDay
-        
+
         DateTime? breakOne = null;
         DateTime? lunch = null;
         DateTime? breakTwo = null;
@@ -259,82 +261,71 @@ public class XlsxConverter
         // File's job key is null as of making this and I could not think of anything other than hardcoding it
         if (string.IsNullOrEmpty(jobKey))
             jobName = "File Clerk";
-        
+
         else if (jobKey == "F")
             jobName = _ws.Cells[row, _jobColumn].Value?.ToString();
-        
+
         else if (JobFinder.jobKeys.ContainsKey(jobKey))
             jobName = JobFinder.jobKeys[jobKey];
-        
-        if(string.IsNullOrEmpty(jobName))
-            jobName = "Miscellaneous";
-        
 
-        if (_currentDay == null){
-            throw new NullReferenceException("currentDay was not found and cannot be null"); 
+        if (string.IsNullOrEmpty(jobName))
+            jobName = "Miscellaneous";
+
+
+        if (_currentDay == null)
+        {
+            throw new NullReferenceException("currentDay was not found and cannot be null");
         }
 
         var jobPosition = _currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
         if (jobPosition == null)
         {
             jobPosition = new JobPosition(jobName);
-            if(jobName.Contains("Front") || jobName.Contains("Fuel") || jobName.Contains("Liquor"))
+            if (jobName.Contains("Front") || jobName.Contains("Fuel") || jobName.Contains("Liquor"))
                 _currentDay.JobPositions.Add(jobPosition);
         }
-            
+
 
         return jobPosition;
     }
 
 
-    private void CreateAndAddShift(string firstName, string lastName,string jobColumnValue, DateTime shiftStart
+    private void CreateAndAddShift(string firstName, string lastName, string jobColumnValue, DateTime shiftStart
         , DateTime shiftEnd, DateTime? breakOne, DateTime? lunch, DateTime? breakTwo, JobPosition jobPosition, int bathroomOrder, bool isCallUp)
     {
 
-        if (!jobPosition.Name.Contains("Front") && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel"))
+        var newShift = new Shift();
+
+        newShift.FirstName = firstName;
+        newShift.BaggerName = firstName;
+        newShift.LastName = lastName;
+        newShift.ShiftStart = shiftStart;
+        newShift.ShiftEnd = shiftEnd;
+        newShift.BreakOne = breakOne;
+        newShift.Lunch = lunch;
+        newShift.BreakTwo = breakTwo;
+        newShift.OriginalPosition = jobPosition.Name;
+
+        if (!jobPosition.Name.Contains("Front") && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel")
+            && (isCallUp || jobPosition.Name.Contains("Floral") || jobPosition.Name.Contains("Apparel")))
         {
-            if(isCallUp)
+
+            if (_currentDay == null)
             {
-                CallUpShift newCallUpShift = new CallUpShift();
-
-                newCallUpShift.FirstName = firstName;
-                newCallUpShift.BaggerName = firstName;
-                newCallUpShift.LastName = lastName;
-                newCallUpShift.ShiftStart = shiftStart;
-                newCallUpShift.ShiftEnd = shiftEnd;
-                newCallUpShift.BreakOne = breakOne;
-                newCallUpShift.Lunch = lunch;
-                newCallUpShift.BreakTwo = breakTwo;
-                newCallUpShift.OriginalPosition = jobPosition.Name;
-
-                if (_currentDay == null)
-                {
-                    throw new NullReferenceException("currentDay was not found and cannot be null");
-                }
-                var callUpPosition = _currentDay.JobPositions.Where(j => j.Name == "Call Ups").FirstOrDefault();
-                if (callUpPosition == null)
-                {
-                    callUpPosition = new JobPosition("Call Ups");
-                    _currentDay.JobPositions.Add(callUpPosition);
-                }
-                    
-                callUpPosition.Shifts.Add(newCallUpShift);
-
+                throw new NullReferenceException("currentDay was not found and cannot be null");
             }
-            
-        } else
+            var callUpPosition = _currentDay.JobPositions.Where(j => j.Name == "Call Ups").FirstOrDefault();
+            if (callUpPosition == null)
+            {
+                callUpPosition = new JobPosition("Call Ups");
+                _currentDay.JobPositions.Add(callUpPosition);
+            }
+
+            callUpPosition.Shifts.Add(newShift);
+
+        }
+        else
         {
-            var newShift = new Shift();
-
-            newShift.FirstName = firstName;
-            newShift.BaggerName = firstName;
-            newShift.LastName = lastName;
-            newShift.ShiftStart = shiftStart;
-            newShift.ShiftEnd = shiftEnd;
-            newShift.BreakOne = breakOne;
-            newShift.Lunch = lunch;
-            newShift.BreakTwo = breakTwo;
-
 
             jobPosition.Shifts.Add(newShift);
 
@@ -423,7 +414,7 @@ public class XlsxConverter
     {
         foreach (var day in _days)
             foreach (var jobPosition in day.JobPositions)
-                jobPosition.Shifts.Sort((x,y) => x.ShiftStart.CompareTo(y.ShiftStart));
+                jobPosition.Shifts.Sort((x, y) => x.ShiftStart.CompareTo(y.ShiftStart));
     }
 
 }

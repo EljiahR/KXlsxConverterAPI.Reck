@@ -2,7 +2,7 @@
 
 namespace KXlsxConverterAPI.Helpers;
 
-public class StringFixer
+public class StringHelpers
 {
     private static Regex mcRegex = new(@"^mc", RegexOptions.IgnoreCase);
     public static (string, string) GetFirstAndLastName(string nameCell)
@@ -28,5 +28,14 @@ public class StringFixer
             result = "Mc" + result.Substring(2, 1).ToUpper() + result.Substring(3).ToLower();
         }
         return result;
+    }
+
+    public static bool ContainsOne(string original, IEnumerable<string> stringsToCheck)
+    {
+        foreach (string s in stringsToCheck)
+        {
+            if (original.Contains(s)) return true;
+        }
+        return false;
     }
 }
