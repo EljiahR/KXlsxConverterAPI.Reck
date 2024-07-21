@@ -37,7 +37,7 @@ public class XlsxConverter
         _days = new();
         _timeIndex = new();
         _storeEmployees = storeEmployees; // Injecting whatever employee list was found before this converter was created
-        _ws = ws;
+        _ws = ws; // Injecting Excel ws from uploaded file
     }
     public List<WeekdaySchedule> ConvertXlsx()
     {

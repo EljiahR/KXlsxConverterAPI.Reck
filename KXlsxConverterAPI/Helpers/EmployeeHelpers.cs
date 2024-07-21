@@ -80,8 +80,11 @@ public class EmployeeHelpers
         // Dictionaries and first for loop trying to catch baggers with same first name, probably a bit much
         Dictionary<string, int> indexKey = new();
         Dictionary<int, string> nameKey = new();
+        int bathroomBaggerIndex = -1;
         for (int i = 0; i < Baggers.Shifts.Count; i++)
         {
+            if (bathroomBaggerIndex < 0 && bathroomBagger != null && Baggers.Shifts[i].FirstName == bathroomBagger.FirstName && Baggers.Shifts[i].LastName == bathroomBagger.LastName)
+                bathroomBaggerIndex = i;
             if (indexKey.ContainsKey(Baggers.Shifts[i].FirstName))
             {
                 int existingNameIndex = indexKey[Baggers.Shifts[i].FirstName];
@@ -105,9 +108,9 @@ public class EmployeeHelpers
         // I know O(n^2), but timeSlot is a constant length
         for (int baggerIndex = 0; baggerIndex < Baggers.Shifts.Count; baggerIndex++)
         {
-            if (Baggers.Shifts[baggerIndex] is not Shift)
-                throw new NotSupportedException("Bagger shifts should all be Shift, not CallUpShift");
-            currentBagger = (Shift) Baggers.Shifts[baggerIndex];
+            if (baggerIndex == bathroomBaggerIndex)
+                continue;
+            currentBagger = Baggers.Shifts[baggerIndex];
             for (int timeSlot = 0; timeSlot < Carts.Length; timeSlot++)
             {
                 currentSlot = Carts[timeSlot];
