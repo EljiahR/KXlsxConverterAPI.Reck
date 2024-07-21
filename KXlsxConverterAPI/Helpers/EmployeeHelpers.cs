@@ -61,6 +61,8 @@ public class EmployeeHelpers
             }
             else
             {
+                if (shiftLength.TotalHours == 6.75)
+                    lunch = startTime.AddHours(3); // Only have ever seen one person work this and it gives weird break times if not addressed
                 lunch = startTime.AddHours(shiftLength.TotalHours / 2);
             }
         }
