@@ -307,7 +307,7 @@ public class XlsxConverter
         newShift.OriginalPosition = jobPosition.Name;
 
         if (!jobPosition.Name.Contains("Front") && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel")
-            && (isCallUp || jobPosition.Name.Contains("Floral") || jobPosition.Name.Contains("Apparel")))
+            && (isCallUp || jobPosition.Name.Contains("Floral") || jobPosition.Name.Contains("Apparel") || jobPosition.Name.Contains("File")))
         {
 
             if (_currentDay == null)
