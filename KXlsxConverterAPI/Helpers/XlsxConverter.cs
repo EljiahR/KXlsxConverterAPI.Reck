@@ -306,8 +306,8 @@ public class XlsxConverter
         newShift.BreakTwo = breakTwo;
         newShift.OriginalPosition = jobPosition.Name;
 
-        if (!jobPosition.Name.Contains("Front") && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel")
-            && (isCallUp || jobPosition.Name.Contains("Floral") || jobPosition.Name.Contains("Apparel") || jobPosition.Name.Contains("File")))
+        if ((!jobPosition.Name.Contains("Front") || jobPosition.Name.Contains("File")) && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel")
+            && (isCallUp || jobPosition.Name.Contains("Floral") || jobPosition.Name.Contains("Apparel")))
         {
 
             if (_currentDay == null)
