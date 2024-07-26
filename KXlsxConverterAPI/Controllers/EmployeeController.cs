@@ -51,6 +51,23 @@ public class EmployeeController : Controller
         }
     }
     [HttpPost]
+    [Route("{division}/{storeNumber}")]
+    public IActionResult PostEmployeeToStore(Employee employee, int division, int storeNumber)
+    {
+        try
+        {
+            employee.StoreNumber = storeNumber;
+            employee.Division = division;
+            _service.AddEmployee(employee);
+            return Created();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+            return BadRequest("Error with employee format");
+        }
+    }
+    [HttpPost]
     [Route("Bulk")]
     public IActionResult PostMultipleEmployees(List<Employee> employees)
     {
