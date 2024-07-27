@@ -138,6 +138,8 @@ public class XlsxConverter
             employeePreferences.FirstName = StringHelpers.GetProperCase(firstName);
             employeePreferences.LastName = StringHelpers.GetProperCase(lastName);
         }
+        if (employeePreferences.PositionOverride == "DELETE")
+            return;
 
         string? fillColor;
 
@@ -207,10 +209,19 @@ public class XlsxConverter
 
         DateTime wholeShiftStart = _timeIndex[firstJobKeyColumn];
 
-        var startingJobPosition = FindJobPosition(jobKeys[0].jobKey, row);
+        JobPosition startingJobPosition;
+        if(!string.IsNullOrEmpty(employeePreferences.PositionOverride))
+            startingJobPosition = FindJobPosition(employeePreferences.PositionOverride, 1);
+        else
+            startingJobPosition = FindJobPosition(jobKeys[0].jobKey, row);
         // Get split shifts here
         for (int i = 0; i < jobKeys.Count; i++)
         {
+            if(!string.IsNullOrEmpty(employeePreferences.PositionOverride))
+            {
+                shifts.Add((wholeShiftStart, wholeShiftEnd, startingJobPosition));
+                break;
+            }
             if (i == 0)
             {
                 var firstShiftEnd = i == jobKeys.Count - 1 ? wholeShiftEnd : _timeIndex[jobKeys[i + 1].jobStartColumn];
