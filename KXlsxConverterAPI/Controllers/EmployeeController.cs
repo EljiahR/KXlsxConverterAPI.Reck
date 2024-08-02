@@ -36,20 +36,20 @@ public class EmployeeController : Controller
         var employees = _service.GetAllEmployees();
         return employees == null ? NotFound() : Ok(employees);
     }
-    [HttpPost]
-    public IActionResult PostEmployee(Employee employee)
-    {
-        try
-        {
-            _service.AddEmployee(employee);
-            return Created();
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-            return BadRequest("Error with employee format");
-        }
-    }
+    //[HttpPost]
+    //public IActionResult PostEmployee(Employee employee)
+    //{
+    //    try
+    //    {
+    //        _service.AddEmployee(employee);
+    //        return Created();
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.Error.WriteLine(ex);
+    //        return BadRequest("Error with employee format");
+    //    }
+    //}
     [HttpPost]
     [Route("{division}/{storeNumber}")]
     public IActionResult PostEmployeeToStore(Employee employee, int division, int storeNumber)
