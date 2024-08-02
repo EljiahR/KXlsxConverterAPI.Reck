@@ -90,7 +90,7 @@ public class EmployeeController : Controller
         catch (Exception ex)
         {
             Console.Error.WriteLine(ex);
-            return BadRequest($"Error with employee format: {ex.Message}");
+            return BadRequest($"{ex.Message}: {ex.InnerException}");
         }
     }
 
