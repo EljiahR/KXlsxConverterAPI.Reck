@@ -51,13 +51,10 @@ public class EmployeeController : Controller
     //    }
     //}
     [HttpPost]
-    [Route("{division}/{storeNumber}")]
-    public IActionResult PostEmployeeToStore(Employee employee, int division, int storeNumber)
+    public IActionResult PostEmployeeToStore(Employee employee)
     {
         try
         {
-            employee.StoreNumber = storeNumber;
-            employee.Division = division;
             _service.AddEmployee(employee);
             return Created();
         }
