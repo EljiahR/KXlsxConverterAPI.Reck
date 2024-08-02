@@ -56,7 +56,7 @@ public class EmployeeController : Controller
         try
         {
             _service.AddEmployee(employee);
-            return Created();
+            return Ok(employee);
         }
         catch (Exception ex)
         {
@@ -71,7 +71,7 @@ public class EmployeeController : Controller
         try
         {
             _service.AddEmployeeBatch(employees);
-            return Created();
+            return Ok(employees);
         }
         catch (Exception ex)
         {
@@ -85,7 +85,7 @@ public class EmployeeController : Controller
         try
         {
             _service.UpdateEmployee(employee);
-            return Ok();
+            return Ok(employee);
         }
         catch (Exception ex)
         {
@@ -140,7 +140,7 @@ public class EmployeeController : Controller
         try
         {
             _service.DeleteEmployee(employee);
-            return Ok();
+            return Ok(employee);
         }
         catch (Exception ex)
         {
@@ -154,7 +154,7 @@ public class EmployeeController : Controller
         try
         {
             _service.DeleteAllEmployees();
-            return Ok();
+            return NoContent();
         }
         catch (Exception ex)
         {
@@ -168,7 +168,7 @@ public class EmployeeController : Controller
         try
         {
             _service.DeleteAllByDivisionAndStoreNumber(division, storeNumber);
-            return Ok();
+            return NoContent();
         }
         catch (Exception ex)
         {
