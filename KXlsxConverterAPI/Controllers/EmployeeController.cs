@@ -55,6 +55,7 @@ public class EmployeeController : Controller
     {
         try
         {
+            if(employee.Birthday != null) employee.Birthday = DateTime.SpecifyKind(employee.Birthday.Value, DateTimeKind.Utc);
             _service.AddEmployee(employee);
             return Ok(employee);
         }
@@ -84,6 +85,7 @@ public class EmployeeController : Controller
     {
         try
         {
+            if (employee.Birthday != null) employee.Birthday = DateTime.SpecifyKind(employee.Birthday.Value, DateTimeKind.Utc);
             _service.UpdateEmployee(employee);
             return Ok(employee);
         }
