@@ -61,13 +61,10 @@ public class EmployeeHelpers
             }
             else
             {
-                if (shiftLength.TotalHours == 6.75 || shiftLength.TotalHours == 6.25)
-                    lunch = startTime.AddHours(3); // Only have ever seen one person work this and it gives weird break times if not addressed
-                else
-                    lunch = startTime.AddHours(shiftLength.TotalHours / 2);
+                lunch = startTime.AddHours(3); 
             }
         }
-        else
+        else if(shiftLength.TotalHours >= 4)
         {
             // Only shifts left should be getting exactly one 15 minute break
             if (shiftLength.TotalHours == 4.25 || shiftLength.TotalHours == 4.75)
