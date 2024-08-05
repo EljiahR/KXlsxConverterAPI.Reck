@@ -19,6 +19,9 @@ public class EmployeeHelpers
         DateTime? break2 = null;
         TimeSpan shiftLength = endTime - startTime;
 
+        // Early return for short shifts
+        if (shiftLength.TotalHours < 4) return (break1, lunch, break2);
+
         // Im sure theres a more dynamic way of getting these, just seems like too much work for basically the same payoff
         // Im sure the order of the if else statements are a little weird but it honestly felt the most efficient
 
@@ -64,7 +67,7 @@ public class EmployeeHelpers
                 lunch = startTime.AddHours(3); 
             }
         }
-        else if(shiftLength.TotalHours >= 4)
+        else
         {
             // Only shifts left should be getting exactly one 15 minute break
             if (shiftLength.TotalHours == 4.25 || shiftLength.TotalHours == 4.75)
