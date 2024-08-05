@@ -9,7 +9,7 @@ namespace KXlsxConverterAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class EmployeeController : Controller
+public class EmployeeController : ControllerBase
 {
     private readonly IEmployeeService _service;
     public EmployeeController(IEmployeeService service)
