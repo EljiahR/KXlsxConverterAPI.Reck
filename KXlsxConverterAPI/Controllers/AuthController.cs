@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
 
     private string GenerateJwtToken(string username)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Key"]));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
@@ -41,8 +41,8 @@ public class AuthController : ControllerBase
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
 
-        var token = new JwtSecurityToken(_config["Jwt:Issuer"],
-            _config["Jwt:Audience"],
+        var token = new JwtSecurityToken(_config["Issuer"],
+            _config["Audience"],
             claims,
             expires: DateTime.Now.AddMinutes(90),
             signingCredentials: credentials);
