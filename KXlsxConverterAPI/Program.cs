@@ -21,6 +21,16 @@ else
         options.UseNpgsql(dbConnection));
 }
 
+// Add CORS
+services.AddCors(options =>
+{
+    options.AddPolicy("AllowFront", policy =>
+    {
+        policy.WithOrigins("https://15minutechart.netlify.app/")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 // Add authentication to service
 services.AddAuthentication(options =>
@@ -54,6 +64,9 @@ services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Enable CORS
+app.UseCors("AllowFront");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
