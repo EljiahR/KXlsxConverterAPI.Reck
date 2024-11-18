@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
 string? dbConnection = builder.Configuration["POSTGRESQLCONNSTR_DatabaseConnectionString"];
-if(string.IsNullOrEmpty(dbConnection))
+if (string.IsNullOrEmpty(dbConnection))
 {
     services.AddDbContext<EmployeeContext>(options =>
         options.UseSqlite("Data Source=employees.db"), ServiceLifetime.Scoped);
@@ -26,7 +26,7 @@ services.AddCors(options =>
 {
     options.AddPolicy("AllowFront", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://15minutechart.netlify.app")  
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -53,13 +53,13 @@ services.AddAuthentication(options =>
     });
 
 // Add services to the container
-
 services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 services.AddScoped<IEmployeeService, EmployeeService>();
 
 services.AddControllers();
 services.AddAuthentication();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// Swagger/OpenAPI
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 
@@ -76,9 +76,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
 
+// Authentication middleware must come before Authorization and Endpoints
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
