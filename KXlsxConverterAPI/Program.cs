@@ -26,7 +26,7 @@ services.AddCors(options =>
 {
     options.AddPolicy("AllowFront", policy =>
     {
-        policy.WithOrigins("https://15minutechart.netlify.app/")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
