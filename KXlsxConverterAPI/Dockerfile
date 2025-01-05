@@ -1,5 +1,5 @@
 # Use .NET SDK image to build the application
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 # Set the working directory
 WORKDIR /src
@@ -13,7 +13,7 @@ COPY . .
 RUN dotnet publish "KXlsxConverterAPI.csproj" -c Release -o /app/publish
 
 # Use .NET SDK image for the runtime, so we can run migrations
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS base
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS base
 
 WORKDIR /app
 EXPOSE 80
