@@ -15,7 +15,10 @@ COPY . /app
 RUN dotnet publish -c Release -o /app/publish
 
 # Use the ASP.NET runtime image to host the application
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
 COPY --from=build /app/publish .
 ENTRYPOINT ["sh", "-c", "dotnet ef database update --context ApplicationDbContext && KXlsxConverterAPI.dll"]
