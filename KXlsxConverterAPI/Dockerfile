@@ -1,24 +1,29 @@
-# Use the SDK image to build the application
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Use .NET SDK image to build the application
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
-# Set the working directory inside the container
-WORKDIR /app
+# Set the working directory
+WORKDIR /src
 
-# Copy the CSPROJ file into the container and restore dependencies
-COPY KXlsxConverterAPI/KXlsxConverterAPI.csproj ./KXlsxConverterAPI/
-WORKDIR /app/KXlsxConverterAPI
+# Copy the project file and restore dependencies
+COPY ["KXlsxConverterAPI/KXlsxConverterAPI.csproj", "KXlsxConverterAPI/"]
+RUN dotnet restore "KXlsxConverterAPI/KXlsxConverterAPI.csproj"
 
-RUN dotnet restore
+# Copy all files and publish the app
+COPY . .
+RUN dotnet publish "KXlsxConverterAPI.csproj" -c Release -o /app/publish
 
-# Copy the entire project into the container and build it
-COPY . /app
-RUN dotnet publish -c Release -o /app/publish
+# Use .NET SDK image for the runtime, so we can run migrations
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS base
 
-# Use the ASP.NET runtime image to host the application
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
+# Copy the published app to the runtime container
 COPY --from=build /app/publish .
-ENTRYPOINT ["sh", "-c", "dotnet ef database update --context ApplicationDbContext && KXlsxConverterAPI.dll"]
+
+# Ensure that the dotnet ef tool is available (from the build image)
+RUN dotnet tool restore
+
+# The ENTRYPOINT is set to run migrations first and then the app
+ENTRYPOINT ["sh", "-c", "dotnet ef database update --context EmployeeContext && dotnet KXlsxConverterAPI.dll"]
