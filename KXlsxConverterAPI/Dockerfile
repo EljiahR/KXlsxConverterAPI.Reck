@@ -13,7 +13,7 @@ COPY . .
 RUN dotnet publish "KXlsxConverterAPI/KXlsxConverterAPI.csproj" -c Release -o /app/publish
 
 # Use .NET SDK image for the runtime, so we can run migrations
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base  # Use runtime image for running the app
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base  
 
 WORKDIR /app
 EXPOSE 80
@@ -29,7 +29,7 @@ RUN dotnet tool install --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
 
 # Set the working directory to where your project .csproj is located
-WORKDIR /src/KXlsxConverterAPI  # This should match the folder where your .csproj file resides inside the container
+WORKDIR /src/KXlsxConverterAPI 
 
 # The ENTRYPOINT is set to run migrations first and then the app
 ENTRYPOINT ["sh", "-c", "dotnet ef database update --context EmployeeContext --project KXlsxConverterAPI.csproj && dotnet KXlsxConverterAPI.dll"]
