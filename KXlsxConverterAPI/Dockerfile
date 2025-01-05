@@ -10,7 +10,7 @@ RUN dotnet restore "KXlsxConverterAPI/KXlsxConverterAPI.csproj"
 
 # Copy all files and publish the app
 COPY . .
-RUN dotnet publish "KXlsxConverterAPI.csproj" -c Release -o /app/publish
+RUN dotnet publish "KXlsxConverterAPI/KXlsxConverterAPI.csproj" -c Release -o /app/publish
 
 # Use .NET SDK image for the runtime, so we can run migrations
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS base
