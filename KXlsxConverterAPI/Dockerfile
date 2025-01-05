@@ -22,8 +22,11 @@ EXPOSE 443
 # Copy the published app to the runtime container
 COPY --from=build /app/publish .
 
-# Ensure that the dotnet ef tool is available (from the build image)
-RUN dotnet tool restore
+# Install dotnet-ef tool (EF Core CLI tools)
+RUN dotnet tool install --global dotnet-ef
+
+# Ensure that the PATH includes the location of global tools
+ENV PATH="$PATH:/root/.dotnet/tools"
 
 # The ENTRYPOINT is set to run migrations first and then the app
 ENTRYPOINT ["sh", "-c", "dotnet ef database update --context EmployeeContext && dotnet KXlsxConverterAPI.dll"]
