@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy the project file and restore dependencies
-COPY ["KXlsxConverterAPI/KXlsxConverterAPI.csproj", "KXlsxConverterAPI/"]
+COPY KXlsxConverterAPI/KXlsxConverterAPI.csproj ./KXlsxConverterAPI/
 RUN dotnet restore "KXlsxConverterAPI/KXlsxConverterAPI.csproj"
 
 # Copy all files and publish the app
