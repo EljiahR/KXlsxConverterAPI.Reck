@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 # Set the working directory
-WORKDIR /src
+WORKDIR /app
 
 # Copy the project file and restore dependencies
 COPY KXlsxConverterAPI/KXlsxConverterAPI.csproj ./KXlsxConverterAPI/
