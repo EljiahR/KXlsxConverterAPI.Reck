@@ -32,7 +32,7 @@ RUN dotnet tool install --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
 
 # Set the working directory to where your project .csproj is located
-WORKDIR /KXlsxConverterAPI
+WORKDIR /app/KXlsxConverterAPI
 
 # The ENTRYPOINT is set to run migrations first and then the app
 ENTRYPOINT ["sh", "-c", "dotnet ef database update --context EmployeeContext --project KXlsxConverterAPI.csproj && dotnet KXlsxConverterAPI.dll"]
