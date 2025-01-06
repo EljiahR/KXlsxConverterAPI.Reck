@@ -12,17 +12,23 @@ namespace KXlsxConverterAPI.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _config;
+    
+    // Don't @ me, I know
+    private readonly string username;
+    private readonly string password;
 
     public AuthController(IConfiguration config)
     {
-        _config = config; 
+        _config = config;
+        username = string.IsNullOrEmpty(config["USERNAME"]) ? "test" : config["USERNAME"]!;
+        password = string.IsNullOrEmpty(config["PASSWORD"]) ? "test" : config["PASSWORD"]!;
     }
 
     [HttpPost]
     [Route("login")]
     public IActionResult Login([FromBody] UserLogin model)
     {
-        if (model.Username == "test" && model.Password == "test")
+        if (model.Username == username && model.Password == password)
         {
             var token = GenerateJwtToken(model.Username);
             return Ok(new { token });
