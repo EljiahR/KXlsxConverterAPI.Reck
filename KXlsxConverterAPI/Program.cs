@@ -1,6 +1,9 @@
 using KXlsxConverterAPI.Data;
+using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Repositories;
 using KXlsxConverterAPI.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,8 +28,23 @@ services.AddCors(options =>
     {
         policy.WithOrigins("https://15minutechart.netlify.app")  
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
+});
+
+services.AddIdentityApiEndpoints<EmployeeUser>()
+    .AddEntityFrameworkStores<EmployeeContext>();
+
+services.Configure<IdentityOptions>(options => 
+{
+    options.Password.RequireNonAlphanumeric = false;
+    options.User.RequireUniqueEmail = false;
+});
+
+services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options => 
+{
+    options.Cookie.SameSite = SameSiteMode.None;
 });
 
 // Add authentication to service
