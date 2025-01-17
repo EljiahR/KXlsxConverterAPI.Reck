@@ -1,11 +1,10 @@
 ﻿using KXlsxConverterAPI.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices.Marshalling;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace KXlsxConverterAPI.Data
 {
-    public class EmployeeContext : DbContext
+    public class EmployeeContext : IdentityDbContext<EmployeeUser>
     {
         public EmployeeContext(DbContextOptions<EmployeeContext> options) : base(options)
         { 
