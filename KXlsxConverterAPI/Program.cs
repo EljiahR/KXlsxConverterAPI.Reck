@@ -75,6 +75,15 @@ services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Seeding admin data
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+    var userManager = serviceProvider.GetRequiredService<UserManager<EmployeeUser>>();
+    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    await SeedData.Initialize(serviceProvider, userManager, roleManager, builder.Configuration);
+}
+
 // Enable CORS
 app.UseCors("AllowFront");
 
