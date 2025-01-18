@@ -20,9 +20,9 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    [Route("login")]
+    [Route("SignIn")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login([FromBody] LoginDto model)
+    public async Task<IActionResult> SignInUser([FromBody] LoginDto model)
     {
         await _signInManager.SignOutAsync();
 
@@ -47,7 +47,10 @@ public class UserController : ControllerBase
 
     }
 
-    public async Task<IActionResult> Register([FromBody] RegisterDto model)
+    [HttpPost]
+    [Route("Register")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RegisterUser([FromBody] RegisterDto model)
     {
         if (ModelState.IsValid)
         {
@@ -67,5 +70,14 @@ public class UserController : ControllerBase
         }
 
         return BadRequest(new { message = "Invalid data."});
+    } 
+
+    [HttpPost]
+    [Route("SignOut")]
+    public async Task<IActionResult> SignOutUser()
+    {
+        await _signInManager.SignOutAsync();
+
+        return Ok(new { message = "Sign out successful!" });
     }
 }
