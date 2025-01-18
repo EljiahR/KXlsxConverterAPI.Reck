@@ -2,6 +2,7 @@
 using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Models.ScheduleModels;
 using KXlsxConverterAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 
@@ -9,6 +10,7 @@ namespace KXlsxConverterAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class EmployeeController : ControllerBase
 {
     private readonly IEmployeeService _service;
@@ -98,6 +100,7 @@ public class EmployeeController : ControllerBase
 
     [HttpPost]
     [Route("Dailies/{division}/{storeNumber}")]
+    [AllowAnonymous]
     public async Task<IActionResult> PostSchedule(IFormFile file, int division, int storeNumber)
     {
         try
