@@ -52,11 +52,12 @@ services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationSch
 // Add authentication to service
 services.AddAuthorization(options => 
 {
-    options.AddPolicy("BelongsToStore", policy => policy.RequireClaim("StoreId"));
+    options.AddPolicy("BelongsToStore", policy => 
+        policy.RequireClaim("StoreNumber")
+        .RequireClaim("DivisionNumber"));
     
     options.AddPolicy("AdminOrBelongsToStore", policy =>
         policy.Requirements.Add(new AdminOrBelongsToStoreRequirement()));
-    
 });
 
 services.AddSingleton<IAuthorizationHandler, AdminOrBelongsToStoreHandler>();
