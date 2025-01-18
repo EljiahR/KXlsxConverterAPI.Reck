@@ -3,6 +3,7 @@ using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Models.ScheduleModels;
 using KXlsxConverterAPI.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 
@@ -14,10 +15,14 @@ namespace KXlsxConverterAPI.Controllers;
 public class EmployeeController : ControllerBase
 {
     private readonly IEmployeeService _service;
-    public EmployeeController(IEmployeeService service)
+    private readonly UserManager<EmployeeUser> _userManager;
+    public EmployeeController(IEmployeeService service, UserManager<EmployeeUser> userManager)
     {
         _service = service;
+        _userManager= userManager;
     }
+
+    // GET: /Employee/1
     [HttpGet]
     [Route("{id}")]
     [Authorize(Roles = "Admin")]
@@ -26,13 +31,22 @@ public class EmployeeController : ControllerBase
         var employee = _service.GetEmployeeById(id);
         return employee == null ? NotFound() : Ok(employee);
     }
+
+    // GET: /Employee/16/549
     [HttpGet]
     [Route("{division}/{storeNumber}")]
     public IActionResult ViewAllEmployeesByDivisionAndStore(int division, int storeNumber)
     {
-        var employees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber);
-        return employees == null ? NotFound() : Ok(employees);
+        if (IsAdminOrMatchesDivisionAndStore(division, storeNumber))
+        {
+            var employees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber);
+            return employees == null ? NotFound() : Ok(employees);
+        }
+        
+        return Unauthorized(new { message = "You do not have access to this store"});
     }
+
+    // GET: /Employee
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public IActionResult ViewAllEmployees()
@@ -40,36 +54,29 @@ public class EmployeeController : ControllerBase
         var employees = _service.GetAllEmployees();
         return employees == null ? NotFound() : Ok(employees);
     }
-    //[HttpPost]
-    //public IActionResult PostEmployee(Employee employee)
-    //{
-    //    try
-    //    {
-    //        _service.AddEmployee(employee);
-    //        return Created();
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        Console.Error.WriteLine(ex);
-    //        return BadRequest("Error with employee format");
-    //    }
-    //}
+
+    // POST: /Employee
     [HttpPost]
     public IActionResult PostEmployeeToStore(Employee employee)
     {
-        try
+        if (IsAdminOrMatchesDivisionAndStore(employee.Division, employee.StoreNumber))
         {
-            if(employee.Birthday != null) employee.Birthday = DateTime.SpecifyKind(employee.Birthday.Value, DateTimeKind.Utc);
-            _service.AddEmployee(employee);
-            return Ok(employee);
+            try
+            {
+                if(employee.Birthday != null) employee.Birthday = DateTime.SpecifyKind(employee.Birthday.Value, DateTimeKind.Utc);
+                _service.AddEmployee(employee);
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex);
+                return BadRequest("Error with employee format");
+            }
         }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-            return BadRequest("Error with employee format");
-        }
+        return Unauthorized(new { message = "You do not have access to this store"});
     }
 
+    // POST: /Employee/Bulk
     [HttpPost]
     [Route("Bulk")]
     [Authorize(Roles = "Admin")]
@@ -87,22 +94,29 @@ public class EmployeeController : ControllerBase
         }
     }
 
+    // PATCH: /Employee
     [HttpPatch]
     public IActionResult PatchEmployee(Employee employee)
     {
-        try
+        if (IsAdminOrMatchesDivisionAndStore(employee.Division, employee.StoreNumber))
         {
-            if (employee.Birthday != null) employee.Birthday = DateTime.SpecifyKind(employee.Birthday.Value, DateTimeKind.Utc);
-            _service.UpdateEmployee(employee);
-            return Ok(employee);
+            try
+            {
+                if (employee.Birthday != null) employee.Birthday = DateTime.SpecifyKind(employee.Birthday.Value, DateTimeKind.Utc);
+                _service.UpdateEmployee(employee);
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex);
+                return BadRequest($"{ex.Message}: {ex.InnerException}");
+            }
         }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-            return BadRequest($"{ex.Message}: {ex.InnerException}");
-        }
+        
+        return Unauthorized(new { message = "You do not have access to this employee"});
     }
 
+    // POST: /Employee/Dailies/16/549
     [HttpPost]
     [Route("Dailies/{division}/{storeNumber}")]
     [AllowAnonymous]
@@ -145,20 +159,27 @@ public class EmployeeController : ControllerBase
         
     }
 
+    // DELETE /Employee
     [HttpDelete]
     public IActionResult DeleteEmployee(Employee employee)
     {
-        try
+        if (IsAdminOrMatchesDivisionAndStore(employee.Division, employee.StoreNumber))
         {
-            _service.DeleteEmployee(employee);
-            return Ok(employee);
+            try
+            {
+                _service.DeleteEmployee(employee);
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"{ex.Message}; Employee not found, unable to delete");
+            }
         }
-        catch (Exception ex)
-        {
-            return BadRequest($"{ex.Message}; Employee not found, unable to delete");
-        }
+        return Unauthorized(new { message = "You do not have access to this employee"});
+        
     }
 
+    // DELETE /Employee/All
     [HttpDelete]
     [Route("All")]
     [Authorize(Roles = "Admin")]
@@ -174,12 +195,14 @@ public class EmployeeController : ControllerBase
             return BadRequest($"{ex.Message}; Employee not found, unable to delete");
         }
     }
-    
+
+    //DELETE /Employee/16/549
     [HttpDelete]
     [Route("{division}/{storeNumber}")]
     [Authorize(Roles = "Admin")]
     public IActionResult DeleteAllByDivisionAndStoreNumber(int division, int storeNumber)
     {
+        var user = User;
         try
         {
             _service.DeleteAllByDivisionAndStoreNumber(division, storeNumber);
@@ -189,5 +212,21 @@ public class EmployeeController : ControllerBase
         {
             return BadRequest($"{ex.Message}; Employee not found, unable to delete");
         }
+    }
+
+    public bool IsAdminOrMatchesDivisionAndStore(int division, int store)
+    {
+        var user = User;
+        if (user.IsInRole("Admin")) return true;
+        
+        var userDivisions = user.Claims.Where(x => x.Type == "DivisionNumber").Select(x => x.Value).ToList();
+        var userStores = user.Claims.Where(x => x.Type == "StoreNumber").Select(x => x.Value).ToList();
+
+        if (userDivisions.Contains(division.ToString()) && userStores.Contains(store.ToString()))
+        {
+            return true;
+        }
+        
+        return false;
     }
 }
