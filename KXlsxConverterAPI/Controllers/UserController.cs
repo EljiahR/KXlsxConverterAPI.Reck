@@ -1,5 +1,6 @@
 using KXlsxConverterAPI.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KXlsxConverterAPI.Controllers;
@@ -9,11 +10,40 @@ namespace KXlsxConverterAPI.Controllers;
 [Authorize]
 public class UserController : ControllerBase
 {
+    private readonly SignInManager<EmployeeUser> _signInManager;
+    private readonly UserManager<EmployeeUser> _userManager;
+
+    public UserController(SignInManager<EmployeeUser> signInManager, UserManager<EmployeeUser> userManager)
+    {
+        _signInManager = signInManager;
+        _userManager = userManager;
+    }
+
     [HttpPost]
     [Route("login")]
     [AllowAnonymous]
-    public Task<IActionResult> Login([FromBody] LoginDto model)
+    public async Task<IActionResult> Login([FromBody] LoginDto model)
     {
-        
+        await _signInManager.SignOutAsync();
+
+        if (ModelState.IsValid)
+        {
+            var user = await _userManager.FindByNameAsync(model.UserName!);
+            if (user == null) 
+            {
+                return Unauthorized(new { message = "Invalid username or password."});
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password!, false, false);
+            if(result.Succeeded)
+            {
+                return Ok(new { message = "Sign in successful!"});
+            }
+            
+            return Unauthorized(new { message = "Invalid username or password."});
+        }
+
+        return BadRequest( new { message = "Invalid data."});
+
     }
 }
