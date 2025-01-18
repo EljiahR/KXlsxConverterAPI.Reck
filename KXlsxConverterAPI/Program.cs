@@ -1,8 +1,10 @@
+using KXlsxConverterAPI.AuthHandlers;
 using KXlsxConverterAPI.Data;
 using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Repositories;
 using KXlsxConverterAPI.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,6 +50,16 @@ services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationSch
 });
 
 // Add authentication to service
+services.AddAuthorization(options => 
+{
+    options.AddPolicy("BelongsToStore", policy => policy.RequireClaim("StoreId"));
+    
+    options.AddPolicy("AdminOrBelongsToStore", policy =>
+        policy.Requirements.Add(new AdminOrBelongsToStoreRequirement()));
+    
+});
+
+services.AddSingleton<IAuthorizationHandler, AdminOrBelongsToStoreHandler>();
 
 // Add services to the container
 services.AddScoped<IEmployeeRepository, EmployeeRepository>();

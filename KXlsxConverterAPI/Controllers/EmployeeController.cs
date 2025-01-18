@@ -20,6 +20,7 @@ public class EmployeeController : ControllerBase
     }
     [HttpGet]
     [Route("{id}")]
+    [Authorize(Roles = "Admin")]
     public IActionResult ViewEmployeeById(int id)
     {
         var employee = _service.GetEmployeeById(id);
@@ -27,12 +28,14 @@ public class EmployeeController : ControllerBase
     }
     [HttpGet]
     [Route("{division}/{storeNumber}")]
+    [Authorize]
     public IActionResult ViewAllEmployeesByDivisionAndStore(int division, int storeNumber)
     {
         var employees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber);
         return employees == null ? NotFound() : Ok(employees);
     }
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public IActionResult ViewAllEmployees()
     {
         var employees = _service.GetAllEmployees();
@@ -69,6 +72,7 @@ public class EmployeeController : ControllerBase
     }
     [HttpPost]
     [Route("Bulk")]
+    [Authorize(Roles = "Admin")]
     public IActionResult PostMultipleEmployees(List<Employee> employees)
     {
         try
@@ -154,6 +158,7 @@ public class EmployeeController : ControllerBase
     }
     [HttpDelete]
     [Route("All")]
+    [Authorize(Roles = "Admin")]
     public IActionResult DeleteAllEmployees()
     {
         try
@@ -168,6 +173,7 @@ public class EmployeeController : ControllerBase
     }
     [HttpDelete]
     [Route("{division}/{storeNumber}")]
+    [Authorize(Roles = "Admin")]
     public IActionResult DeleteAllByDivisionAndStoreNumber(int division, int storeNumber)
     {
         try
