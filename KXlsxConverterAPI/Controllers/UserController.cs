@@ -35,7 +35,7 @@ public class UserController : ControllerBase
             }
 
             var result = await _signInManager.PasswordSignInAsync(user, model.Password!, false, false);
-            if(result.Succeeded)
+            if (result.Succeeded)
             {
                 return Ok(new { message = "Sign in successful!"});
             }
@@ -45,5 +45,27 @@ public class UserController : ControllerBase
 
         return BadRequest( new { message = "Invalid data."});
 
+    }
+
+    public async Task<IActionResult> Register([FromBody] RegisterDto model)
+    {
+        if (ModelState.IsValid)
+        {
+            var user = new EmployeeUser
+            {
+                UserName = model.UserName,
+                Email = model.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password!);
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "User created successfully"});
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        return BadRequest(new { message = "Invalid data."});
     }
 }
