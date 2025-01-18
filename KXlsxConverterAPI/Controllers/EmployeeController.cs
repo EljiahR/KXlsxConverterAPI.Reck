@@ -10,7 +10,7 @@ namespace KXlsxConverterAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
+[Authorize(Policy = "AdminOrBelongsToStore")]
 public class EmployeeController : ControllerBase
 {
     private readonly IEmployeeService _service;
@@ -28,7 +28,6 @@ public class EmployeeController : ControllerBase
     }
     [HttpGet]
     [Route("{division}/{storeNumber}")]
-    [Authorize]
     public IActionResult ViewAllEmployeesByDivisionAndStore(int division, int storeNumber)
     {
         var employees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber);
@@ -70,6 +69,7 @@ public class EmployeeController : ControllerBase
             return BadRequest("Error with employee format");
         }
     }
+
     [HttpPost]
     [Route("Bulk")]
     [Authorize(Roles = "Admin")]
@@ -86,6 +86,7 @@ public class EmployeeController : ControllerBase
             return BadRequest("Error with employee format");
         }
     }
+
     [HttpPatch]
     public IActionResult PatchEmployee(Employee employee)
     {
@@ -143,6 +144,7 @@ public class EmployeeController : ControllerBase
         }
         
     }
+
     [HttpDelete]
     public IActionResult DeleteEmployee(Employee employee)
     {
@@ -156,6 +158,7 @@ public class EmployeeController : ControllerBase
             return BadRequest($"{ex.Message}; Employee not found, unable to delete");
         }
     }
+
     [HttpDelete]
     [Route("All")]
     [Authorize(Roles = "Admin")]
@@ -171,6 +174,7 @@ public class EmployeeController : ControllerBase
             return BadRequest($"{ex.Message}; Employee not found, unable to delete");
         }
     }
+    
     [HttpDelete]
     [Route("{division}/{storeNumber}")]
     [Authorize(Roles = "Admin")]
