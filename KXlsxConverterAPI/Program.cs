@@ -53,8 +53,7 @@ services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationSch
 services.AddAuthorization(options => 
 {
     options.AddPolicy("BelongsToStore", policy => 
-        policy.RequireClaim("StoreNumber")
-        .RequireClaim("DivisionNumber"));
+        policy.RequireClaim("StoreNumber"));
     
     options.AddPolicy("AdminOrBelongsToStore", policy =>
         policy.Requirements.Add(new AdminOrBelongsToStoreRequirement()));

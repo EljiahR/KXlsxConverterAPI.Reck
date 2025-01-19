@@ -14,7 +14,7 @@ public class AdminOrBelongsToStoreHandler : AuthorizationHandler<AdminOrBelongsT
         }
 
         // Check if the user meets the "BelongsToStore" condition
-        if (context.User.HasClaim(c => c.Type == "StoreNumber") && context.User.HasClaim(c => c.Type == "DivisionNumber")) // Example claim check
+        if (context.User.HasClaim(c => c.Type == "StoreNumber")) // Example claim check
         {
             context.Succeed(requirement);
             return Task.CompletedTask;

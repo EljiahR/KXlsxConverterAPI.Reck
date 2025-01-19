@@ -80,4 +80,22 @@ public class UserController : ControllerBase
 
         return Ok(new { message = "Sign out successful!" });
     }
+
+    [HttpGet]
+    [Route("Status")]
+    public async Task<IActionResult> GetUserSignInStatus()
+    {
+        if (User.Identity!.IsAuthenticated)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var roleClaims = await _userManager.GetClaimsAsync(user!);
+
+            var storeNumbers = roleClaims.Where(x => x.Type == "StoreNumber")
+                                .Select(x => x.Value).ToArray();
+
+            return Ok(new {message = "User is authorized.", authorizedRoutes = new AuthorizedRoutesDto(storeNumbers)});
+        }
+
+        return Unauthorized();
+    }
 }
