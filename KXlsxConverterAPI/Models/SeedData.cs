@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 
 namespace KXlsxConverterAPI.Models;
@@ -8,6 +9,8 @@ public static class SeedData
     {
         var roleNames = new[] { "Admin", "User" };
         var rolesExist = roleNames.All(role => roleManager.Roles.Any(r => r.Name == role));
+        var storeNumbers = new[] { "000-000", "016-549" };
+        var storeClaims = storeNumbers.Select(x => new Claim("StoreNumber", x));
 
         if (!rolesExist)
         {
@@ -34,6 +37,9 @@ public static class SeedData
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(adminUser, "Admin");
+                    
+                    await userManager.AddClaimsAsync(adminUser, storeClaims);
+                    
                 }
             }
         }
