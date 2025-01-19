@@ -36,8 +36,7 @@ services.AddCors(options =>
 });
 
 services.AddIdentity<EmployeeUser, IdentityRole>()
-    .AddEntityFrameworkStores<EmployeeContext>()
-    .AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<EmployeeContext>();
 
 services.Configure<IdentityOptions>(options => 
 {
