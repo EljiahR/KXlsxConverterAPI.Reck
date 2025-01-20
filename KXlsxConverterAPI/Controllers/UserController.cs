@@ -18,7 +18,8 @@ public class UserController : ControllerBase
         _signInManager = signInManager;
         _userManager = userManager;
     }
-
+    
+    // POST: /User/SignIn
     [HttpPost]
     [Route("SignIn")]
     [AllowAnonymous]
@@ -47,6 +48,7 @@ public class UserController : ControllerBase
 
     }
 
+    // POST: /User/Register
     [HttpPost]
     [Route("Register")]
     [AllowAnonymous]
@@ -72,6 +74,7 @@ public class UserController : ControllerBase
         return BadRequest(new { message = "Invalid data."});
     } 
 
+    // POST: /User/SignOut
     [HttpPost]
     [Route("SignOut")]
     public async Task<IActionResult> SignOutUser()
@@ -81,6 +84,7 @@ public class UserController : ControllerBase
         return Ok(new { message = "Sign out successful!" });
     }
 
+    // Get: /User/Status
     [HttpGet]
     [Route("Status")]
     public async Task<IActionResult> GetUserSignInStatus()
