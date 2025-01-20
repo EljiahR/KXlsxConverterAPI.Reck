@@ -47,7 +47,7 @@ services.Configure<IdentityOptions>(options =>
 services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options => 
 {
     options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 // Add authentication to service
