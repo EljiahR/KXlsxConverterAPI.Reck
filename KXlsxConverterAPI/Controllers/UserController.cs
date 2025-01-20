@@ -89,7 +89,11 @@ public class UserController : ControllerBase
     [Route("Status")]
     public async Task<IActionResult> GetUserSignInStatus()
     {
-        if (User.Identity!.IsAuthenticated)
+        if (User.Identity == null)
+        {
+            return Unauthorized(new {message = "No user was found"});
+        }
+        if (User.Identity.IsAuthenticated)
         {
             var user = await _userManager.GetUserAsync(User);
             var roleClaims = await _userManager.GetClaimsAsync(user!);
@@ -100,6 +104,6 @@ public class UserController : ControllerBase
             return Ok(new {message = "User is authorized.", authorizedRoutes = new AuthorizedRoutesDto(storeNumbers)});
         }
 
-        return Unauthorized();
+        return Unauthorized(new {message = "User was not authenticated"});
     }
 }
