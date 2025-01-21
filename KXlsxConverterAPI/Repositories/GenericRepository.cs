@@ -12,17 +12,14 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         _context = context;
         _dbSet = _context.Set<TEntity>();
     }
-    public void Add(TEntity entity)
+    public async Task AddAsync(TEntity entity)
     {
-        _dbSet.Add(entity);
+        await _dbSet.AddAsync(entity);
         SaveChanges();
     }
-    public void AddAll(IEnumerable<TEntity> entities)
+    public async Task AddAllAsync(IEnumerable<TEntity> entities)
     {
-        foreach(var entity in entities)
-        {
-            _dbSet.Add(entity);
-        }
+        await _dbSet.AddRangeAsync(entities);
         SaveChanges();
     }
     public void Delete(TEntity entity)
@@ -37,14 +34,14 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         SaveChanges();
     }
 
-    public IEnumerable<TEntity> GetAll()
+    public async Task<IEnumerable<TEntity>> GetAllAsync()
     {
-        return _dbSet.ToList();
+        return await _dbSet.ToListAsync();
     }
 
-    public TEntity? GetById(int id)
+    public async Task<TEntity?> GetByIdAsync(int id)
     {
-        return _dbSet.Find(id);
+        return await _dbSet.FindAsync(id);
     }
 
     public void Update(TEntity entity)

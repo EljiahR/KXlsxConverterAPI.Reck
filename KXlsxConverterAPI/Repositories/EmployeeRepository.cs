@@ -8,14 +8,13 @@ namespace KXlsxConverterAPI.Repositories
     {
         public EmployeeRepository(EmployeeContext context) : base(context) { }
 
-        public IEnumerable<Employee> GetAllByDivisionAndStoreNumber(int division, int storeNumber)
+        public async Task<IEnumerable<Employee>> GetAllByDivisionAndStoreNumberAsync(int division, int storeNumber)
         {
-            return _dbSet.Where(e => e.Division == division && e.StoreNumber == storeNumber).ToList();
+            return await _dbSet.Where(e => e.Division == division && e.StoreNumber == storeNumber).ToListAsync();
         }
-        public void DeleteAllByDivisionAndStoreNumber(int division, int storeNumber)
+        public async Task DeleteAllByDivisionAndStoreNumberAsync(int division, int storeNumber)
         {
-            var employeesToDelete = GetAllByDivisionAndStoreNumber(division, storeNumber);
-            _dbSet.RemoveRange(employeesToDelete);
+            await _dbSet.Where(e => e.Division == division && e.StoreNumber == storeNumber).ExecuteDeleteAsync();
         }
     }
 }
