@@ -89,10 +89,11 @@ public class UserController : ControllerBase
     [Route("Status")]
     public async Task<IActionResult> GetUserSignInStatus()
     {
-        if (User.Identity == null)
+        if (User == null || User.Identity == null)
         {
             return Unauthorized(new {message = "No user was found"});
         }
+        
         if (User.Identity.IsAuthenticated)
         {
             var user = await _userManager.GetUserAsync(User);
