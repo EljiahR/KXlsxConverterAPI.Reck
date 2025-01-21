@@ -87,6 +87,7 @@ public class UserController : ControllerBase
     // Get: /User/Status
     [HttpGet]
     [Route("Status")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetUserSignInStatus()
     {
         if (User == null || User.Identity == null)
