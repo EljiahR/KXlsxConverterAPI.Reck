@@ -11,13 +11,13 @@ namespace KXlsxConverterAPI.Services
             _employeeRepository = repository;
         }
 
-        public void AddEmployee(Employee employee)
+        public async Task AddEmployeeAsync(Employee employee)
         {
-            _employeeRepository.Add(employee);
+            await _employeeRepository.AddAsync(employee);
         }
-        public void AddEmployeeBatch(List<Employee> employees)
+        public async Task AddEmployeeBatchAsync(List<Employee> employees)
         {
-            _employeeRepository.AddAll(employees);
+            await _employeeRepository.AddAllAsync(employees);
         }
 
         public void DeleteEmployee(Employee employee)
@@ -30,27 +30,27 @@ namespace KXlsxConverterAPI.Services
             _employeeRepository.DeleteAll();
         }
 
-        public void DeleteAllByDivisionAndStoreNumber(int division, int storeNumber)
+        public async Task DeleteAllByDivisionAndStoreNumberAsync(int division, int storeNumber)
         {
-            _employeeRepository.DeleteAllByDivisionAndStoreNumber(division, storeNumber);
+           await _employeeRepository.DeleteAllByDivisionAndStoreNumberAsync(division, storeNumber);
         }
 
-        public IEnumerable<Employee> GetAllByDivisionAndStoreNumber(int division, int storeNumber)
+        public async Task<IEnumerable<Employee>> GetAllByDivisionAndStoreNumberAsync(int division, int storeNumber)
         { 
-            return _employeeRepository.GetAllByDivisionAndStoreNumber(division, storeNumber);
+            return await _employeeRepository.GetAllByDivisionAndStoreNumberAsync(division, storeNumber);
         }
 
-        public IEnumerable<Employee> GetAllEmployees()
+        public async Task<IEnumerable<Employee>> GetAllEmployeesAsync()
         {
-            return _employeeRepository.GetAll();
+            return await _employeeRepository.GetAllAsync();
         }
 
-        public Employee? GetEmployeeById(int id)
+        public async Task<Employee?> GetEmployeeByIdAsync(int id)
         {
-            return _employeeRepository.GetById(id);
+            return await _employeeRepository.GetByIdAsync(id);
         }
 
-        public void UpdateEmployee(Employee employee)
+        public void UpdateEmployeeAsync(Employee employee)
         {
             _employeeRepository.Update(employee);
         }
