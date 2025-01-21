@@ -50,7 +50,7 @@ namespace KXlsxConverterAPI.Services
             return await _employeeRepository.GetByIdAsync(id);
         }
 
-        public void UpdateEmployeeAsync(Employee employee)
+        public void UpdateEmployee(Employee employee)
         {
             _employeeRepository.Update(employee);
         }

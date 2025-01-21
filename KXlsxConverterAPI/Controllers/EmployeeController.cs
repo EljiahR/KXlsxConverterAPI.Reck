@@ -26,20 +26,20 @@ public class EmployeeController : ControllerBase
     [HttpGet]
     [Route("{id}")]
     [Authorize(Roles = "Admin")]
-    public IActionResult ViewEmployeeById(int id)
+    public async Task<IActionResult> ViewEmployeeByIdAsync(int id)
     {
-        var employee = _service.GetEmployeeById(id);
+        var employee = await _service.GetEmployeeByIdAsync(id);
         return employee == null ? NotFound() : Ok(employee);
     }
 
     // GET: /Employee/16/549
     [HttpGet]
     [Route("{division}/{storeNumber}")]
-    public IActionResult ViewAllEmployeesByDivisionAndStore(int division, int storeNumber)
+    public async Task<IActionResult> ViewAllEmployeesByDivisionAndStoreAsync(int division, int storeNumber)
     {
         if (IsAdminOrMatchesDivisionAndStore(division, storeNumber))
         {
-            var employees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber);
+            var employees = await _service.GetAllByDivisionAndStoreNumberAsync(division, storeNumber);
             return employees == null ? NotFound() : Ok(employees);
         }
         
@@ -49,22 +49,25 @@ public class EmployeeController : ControllerBase
     // GET: /Employee
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public IActionResult ViewAllEmployees()
+    public async Task<IActionResult> ViewAllEmployeesAsync()
     {
-        var employees = _service.GetAllEmployees();
+        var employees = await _service.GetAllEmployeesAsync();
         return employees == null ? NotFound() : Ok(employees);
     }
 
     // POST: /Employee
     [HttpPost]
-    public IActionResult PostEmployeeToStore(Employee employee)
+    public async Task<IActionResult> PostEmployeeToStoreAsync(Employee employee)
     {
         if (IsAdminOrMatchesDivisionAndStore(employee.Division, employee.StoreNumber))
         {
             try
             {
-                if(employee.Birthday != null) employee.Birthday = DateTime.SpecifyKind(employee.Birthday.Value, DateTimeKind.Utc);
-                _service.AddEmployee(employee);
+                if(employee.Birthday != null)
+                {
+                    employee.Birthday = DateTime.SpecifyKind(employee.Birthday.Value, DateTimeKind.Utc);
+                }
+                await _service.AddEmployeeAsync(employee);
                 return Ok(employee);
             }
             catch (Exception ex)
@@ -80,11 +83,11 @@ public class EmployeeController : ControllerBase
     [HttpPost]
     [Route("Bulk")]
     [Authorize(Roles = "Admin")]
-    public IActionResult PostMultipleEmployees(List<Employee> employees)
+    public async Task<IActionResult> PostMultipleEmployeesAsync(List<Employee> employees)
     {
         try
         {
-            _service.AddEmployeeBatch(employees);
+            await _service.AddEmployeeBatchAsync(employees);
             return Ok(employees);
         }
         catch (Exception ex)
@@ -128,12 +131,12 @@ public class EmployeeController : ControllerBase
             {
                 return BadRequest("No file uploaded or file empty");
             }
-            if (!string.Equals(System.IO.Path.GetExtension(file.FileName), ".xlsx"))
+            if (!string.Equals(Path.GetExtension(file.FileName), ".xlsx"))
             {
-                return BadRequest($"Wrong file type uploaded, {System.IO.Path.GetExtension(file.FileName)} not accepted");
+                return BadRequest($"Wrong file type uploaded, {Path.GetExtension(file.FileName)} not accepted");
             }
 
-            var allEmployees = _service.GetAllByDivisionAndStoreNumber(division, storeNumber); // Ok if empty
+            var allEmployees = await _service.GetAllByDivisionAndStoreNumberAsync(division, storeNumber); // Ok if empty
             List<WeekdaySchedule> fixedSchedule = new();
             using (var stream = new MemoryStream())
             {
@@ -159,11 +162,17 @@ public class EmployeeController : ControllerBase
         
     }
 
-    // DELETE /Employee
+    // DELETE /Employee/1
     [HttpDelete]
-    public IActionResult DeleteEmployee(Employee employee)
+    [Route("{id}")]
+    public async Task<IActionResult> DeleteEmployeeAsync(int id)
     {
-        if (IsAdminOrMatchesDivisionAndStore(employee.Division, employee.StoreNumber))
+        var employee = await _service.GetEmployeeByIdAsync(id);
+        if (employee == null)
+        {
+            return NotFound(new { message = "User not found" });
+        }
+        else if (IsAdminOrMatchesDivisionAndStore(employee.Division, employee.StoreNumber))
         {
             try
             {
@@ -200,12 +209,11 @@ public class EmployeeController : ControllerBase
     [HttpDelete]
     [Route("{division}/{storeNumber}")]
     [Authorize(Roles = "Admin")]
-    public IActionResult DeleteAllByDivisionAndStoreNumber(int division, int storeNumber)
+    public async Task<IActionResult> DeleteAllByDivisionAndStoreNumber(int division, int storeNumber)
     {
-        var user = User;
         try
         {
-            _service.DeleteAllByDivisionAndStoreNumber(division, storeNumber);
+            await _service.DeleteAllByDivisionAndStoreNumberAsync(division, storeNumber);
             return NoContent();
         }
         catch (Exception ex)

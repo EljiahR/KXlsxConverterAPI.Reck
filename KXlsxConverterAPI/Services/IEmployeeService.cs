@@ -12,6 +12,6 @@ namespace KXlsxConverterAPI.Services
         void DeleteEmployee(Employee employee);
         void DeleteAllEmployees();
         Task DeleteAllByDivisionAndStoreNumberAsync(int division, int storeNumber);
-        void UpdateEmployeeAsync(Employee employee);
+        void UpdateEmployee(Employee employee);
     }
 }
