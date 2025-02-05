@@ -11,6 +11,7 @@
             {"U", "Front End SCO Cashier" },
             {"$", "Front End Cashier" },
             {"B", "Front End Courtesy Clerk" },
+            {"/", "Front End Courtesy Clerk"}, // Utility clerk, should count the same, but not count for carts
             {"!", "Front End Service Desk" },
             
             // Common jobs for front end employees to have a split shift with
@@ -22,8 +23,7 @@
             {"M", "GM MrktPlc Clk" }, // Not sure why so heavily shortened
             {"", "File Clerk" }, // Actual key is null
             {"F", "Floral Clerk" },
-            {"A", "Apparel Clerk" }, // Has recently been F for some reason, overlapping with Floral
-            {"/", "Training"} // Training hours with an actual code WOW
+            {"A", "Apparel Clerk" } // Has recently been F for some reason, overlapping with Floral
         };
 
         // Random characters that need to be ignored in any given employee row to help find real split shifts
