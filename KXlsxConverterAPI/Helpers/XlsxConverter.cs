@@ -259,7 +259,7 @@ public class XlsxConverter
             string? jobColumnValue = _ws.Cells[row, _jobColumn].Value?.ToString();
 
             // Actual shift processing done here
-            CreateAndAddShift(employeePreferences.PreferredFirstName ?? employeePreferences.FirstName, employeePreferences.LastName
+            CreateAndAddShift(!string.IsNullOrWhiteSpace(employeePreferences.PreferredFirstName) ? employeePreferences.PreferredFirstName : employeePreferences.FirstName, employeePreferences.LastName
                 , jobColumnValue ?? "", shift.start, shift.end, shiftBreakOne, shiftLunch
                 , shiftBreakTwo, shift.jobPosition, employeePreferences.BathroomOrder, employeePreferences.IsACallUp);
         }
