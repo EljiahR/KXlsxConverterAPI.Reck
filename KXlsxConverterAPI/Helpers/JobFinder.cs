@@ -27,7 +27,8 @@
         };
 
         // Random characters that need to be ignored in any given employee row to help find real split shifts
-        public static readonly string[] NonJobKeys = new string[] { "~", "^", "•", "*" };
+        // The ~ and ^ are breaks and lunches I think. The rest are trash icons typically from bad reports which can sometimes be fixed by re-running the report. 
+        public static readonly string[] NonJobKeys = new string[] { "~", "^", "•", "*", "=" };
 
         public static readonly string jobCellFillRgb = "FFC0C0C0"; // Tried the index and that didn't work sooo Rgb
 
