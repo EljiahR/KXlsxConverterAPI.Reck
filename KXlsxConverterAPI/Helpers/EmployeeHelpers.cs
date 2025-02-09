@@ -125,7 +125,8 @@ public class EmployeeHelpers
                     && currentSlot.Time.TimeOfDay >= currentBagger.ShiftStart.TimeOfDay && currentBagger.ShiftEnd.AddHours(-0.5).TimeOfDay >= currentSlot.Time.TimeOfDay
                     && (currentBagger.BreakOne == null || TimesOverlap(currentBagger.BreakOne.Value, currentSlot.Time))
                     && (currentBagger.Lunch == null || TimesOverlap(currentBagger.Lunch.Value, currentSlot.Time))
-                    && (currentBagger.BreakTwo == null || TimesOverlap(currentBagger.BreakTwo.Value, currentSlot.Time))
+                    && (currentBagger.BreakTwo == null || TimesOverlap(currentBagger.BreakTwo.Value, currentSlot.Time)
+                    && (currentBagger.Subshift == null || !TimeIsIn(currentBagger.Subshift.ShiftStart, currentBagger.Subshift.ShiftEnd, currentSlot.Time)))
                     )
                 {
                     int slotToFill = Array.FindIndex(currentSlot.Baggers, x => string.IsNullOrEmpty(x));
@@ -155,4 +156,9 @@ public class EmployeeHelpers
         }
         
     }
+
+    private static bool TimeIsIn(DateTime start, DateTime end, DateTime timeToCheck)
+    {
+        return timeToCheck.TimeOfDay >= start.TimeOfDay && timeToCheck.TimeOfDay <= end.TimeOfDay;
+    } 
 }
