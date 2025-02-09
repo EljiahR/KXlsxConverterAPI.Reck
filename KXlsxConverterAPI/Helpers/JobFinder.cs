@@ -11,7 +11,7 @@
             {"U", "Front End SCO Cashier" },
             {"$", "Front End Cashier" },
             {"B", "Front End Courtesy Clerk" },
-            {"/", "Front End Courtesy Clerk"}, // Utility clerk, should count the same, but not count for carts
+            
             {"!", "Front End Service Desk" },
             
             // Common jobs for front end employees to have a split shift with
@@ -24,6 +24,15 @@
             {"", "File Clerk" }, // Actual key is null
             {"F", "Floral Clerk" },
             {"A", "Apparel Clerk" } // Has recently been F for some reason, overlapping with Floral
+        };
+
+        // For tracking sub jobs that are still in the parent section but needed for other purposes
+        // i.e. Utility clerks should not be scheduled for carts
+        public static readonly Dictionary<string, Dictionary<string, string>> subJobKeys = new()
+        {
+            {"B", new Dictionary<string, string>{
+                {"/", "Front End Utitity Clerk"} // Utility clerk
+            }}, 
         };
 
         // Random characters that need to be ignored in any given employee row to help find real split shifts
