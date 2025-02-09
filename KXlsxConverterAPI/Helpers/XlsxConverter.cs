@@ -165,7 +165,7 @@ public class XlsxConverter
         }
         DateTime wholeShiftEnd = _timeIndex[jobEndColumn];
 
-        List<(string? jobKey, int jobStartColumn)> jobKeys = new();
+        List<JobKeyTracker> jobKeys = new();
         int firstJobKeyColumn = 0;
 
         // Finding beginning of shift and all splits 
@@ -178,24 +178,24 @@ public class XlsxConverter
                 string? currentKey = _ws.Cells[row, col].Value?.ToString();
                 if (jobKeys.Count < 1)
                 {
-                    jobKeys.Add((currentKey, col));
+                    jobKeys.Add(new JobKeyTracker(currentKey, col));
                     firstJobKeyColumn = col;
                 }
-                else if(currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey) && currentKey != jobKeys.Last().jobKey) 
+                else if(currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey) && currentKey != jobKeys.Last().JobKey) 
                 {
-                    jobKeys.Add((currentKey, col));
+                    jobKeys.Add(new JobKeyTracker(currentKey, col));
                 }
-                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().jobKey)
+                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().JobKey)
                 {
 
-                    var previousJobName = JobFinder.JobKeys[jobKeys.Last().jobKey ?? ""];
+                    var previousJobName = JobFinder.JobKeys[jobKeys.Last().JobKey ?? ""];
                     var currentJobName = JobFinder.JobKeys[currentKey];
 
                     if (!(previousJobName.Contains("Front") && currentJobName.Contains("Front"))
                         && !(!StringHelpers.ContainsOne(previousJobName, ["Front", "Fuel", "Liquor"]) && !StringHelpers.ContainsOne(currentJobName, ["Front", "Fuel", "Liquor"]))
                         && previousJobName != currentJobName)
                         
-                        jobKeys.Add((currentKey, col));
+                        jobKeys.Add(new JobKeyTracker(currentKey, col));
                 }
 
             }
@@ -217,7 +217,7 @@ public class XlsxConverter
         if(!string.IsNullOrEmpty(employeePreferences.PositionOverride))
             startingJobPosition = FindJobPosition(employeePreferences.PositionOverride, 1);
         else
-            startingJobPosition = FindJobPosition(jobKeys[0].jobKey, row);
+            startingJobPosition = FindJobPosition(jobKeys[0].JobKey, row);
         // Get split shifts here
         for (int i = 0; i < jobKeys.Count; i++)
         {
@@ -228,16 +228,16 @@ public class XlsxConverter
             }
             if (i == 0)
             {
-                var firstShiftEnd = i == jobKeys.Count - 1 ? wholeShiftEnd : _timeIndex[jobKeys[i + 1].jobStartColumn];
+                var firstShiftEnd = i == jobKeys.Count - 1 ? wholeShiftEnd : _timeIndex[jobKeys[i + 1].JobStartColumn];
                 shifts.Add(new ShiftData(wholeShiftStart, firstShiftEnd, startingJobPosition));
             }
             else if (i == jobKeys.Count - 1)
             {
-                shifts.Add(new ShiftData(_timeIndex[jobKeys[i].jobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].jobKey, row)));
+                shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].JobKey, row)));
             }
             else
             {
-                shifts.Add(new ShiftData(_timeIndex[jobKeys[i].jobStartColumn], _timeIndex[jobKeys[i + 1].jobStartColumn], FindJobPosition(jobKeys[i].jobKey, row)));
+                shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], _timeIndex[jobKeys[i + 1].JobStartColumn], FindJobPosition(jobKeys[i].JobKey, row)));
             }
         }
 
