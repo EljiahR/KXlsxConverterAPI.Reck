@@ -176,16 +176,36 @@ public class XlsxConverter
             if (fillColor == JobFinder.JobCellFillRgb)
             {
                 string? currentKey = _ws.Cells[row, col].Value?.ToString();
+                
+                // Getting first job key in row
                 if (jobKeys.Count < 1)
                 {
-                    jobKeys.Add(new JobKeyTracker(currentKey, col));
+                    if (currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey))
+                    {
+                        jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
+                    } else 
+                    {
+                        jobKeys.Add(new JobKeyTracker(currentKey, col));
+                    }
                     firstJobKeyColumn = col;
                 }
-                else if(currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey) && currentKey != jobKeys.Last().JobKey) 
+                // Checking for subkeys
+                else if(currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey) && currentKey != jobKeys.Last().JobKey && currentKey != jobKeys.Last().SubJobKey) 
                 {
-                    jobKeys.Add(new JobKeyTracker(currentKey, col));
+                    // Modifying previous job if it is parent of found subjobkey
+                    if (JobFinder.SubJobKeys[currentKey].ParentKey == jobKeys.Last().JobKey)
+                    {
+                        jobKeys.Last().SubJobKey = currentKey;
+                        jobKeys.Last().SubJobStartColumn = col;
+                    }
+                    // New jobkey starting with subjobkey
+                    else
+                    {
+                        jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
+                    }
                 }
-                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().JobKey)
+                // New job key (possible split shift)
+                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().JobKey && jobKeys.Last().SubJobKey != "" && currentKey != jobKeys.Last().SubJobKey)
                 {
 
                     var previousJobName = JobFinder.JobKeys[jobKeys.Last().JobKey ?? ""];
@@ -195,11 +215,17 @@ public class XlsxConverter
                         && !(!StringHelpers.ContainsOne(previousJobName, ["Front", "Fuel", "Liquor"]) && !StringHelpers.ContainsOne(currentJobName, ["Front", "Fuel", "Liquor"]))
                         && previousJobName != currentJobName)
                         
-                        jobKeys.Add(new JobKeyTracker(currentKey, col));
+                        if (currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey))
+                        {
+                            jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
+                        } else 
+                        {
+                            jobKeys.Add(new JobKeyTracker(currentKey, col));
+                        }
                 }
-
             }
         }
+        
         // Throwing error if jobStartColumn was never found
         if (firstJobKeyColumn == 0)
         {
