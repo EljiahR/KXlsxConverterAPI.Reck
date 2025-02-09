@@ -122,11 +122,11 @@ public class EmployeeHelpers
                 currentSlot = Carts[timeSlot];
                 // I know that this is a lot for one if statement but none of these are mutually exclusive
                 if (currentSlot.Baggers.Contains(null) && (timeSlot == 0 || !Carts[timeSlot - 1].Baggers.Contains(nameKey[baggerIndex]))
-                    && currentSlot.Time.TimeOfDay >= currentBagger.ShiftStart.TimeOfDay && currentBagger.ShiftEnd.AddHours(-0.5).TimeOfDay >= currentSlot.Time.TimeOfDay
+                    && TimeIsInBetween(currentBagger.ShiftStart, currentBagger.ShiftEnd, currentSlot.Time)
                     && (currentBagger.BreakOne == null || TimesOverlap(currentBagger.BreakOne.Value, currentSlot.Time))
                     && (currentBagger.Lunch == null || TimesOverlap(currentBagger.Lunch.Value, currentSlot.Time))
                     && (currentBagger.BreakTwo == null || TimesOverlap(currentBagger.BreakTwo.Value, currentSlot.Time)
-                    && (currentBagger.Subshift == null || !TimeIsIn(currentBagger.Subshift.ShiftStart, currentBagger.Subshift.ShiftEnd, currentSlot.Time)))
+                    && (currentBagger.Subshift == null || !TimeIsInBetween(currentBagger.Subshift.ShiftStart, currentBagger.Subshift.ShiftEnd, currentSlot.Time)))
                     )
                 {
                     int slotToFill = Array.FindIndex(currentSlot.Baggers, x => string.IsNullOrEmpty(x));
@@ -157,8 +157,8 @@ public class EmployeeHelpers
         
     }
 
-    private static bool TimeIsIn(DateTime start, DateTime end, DateTime timeToCheck)
+    private static bool TimeIsInBetween(DateTime start, DateTime end, DateTime timeToCheck)
     {
-        return timeToCheck.TimeOfDay >= start.TimeOfDay && timeToCheck.TimeOfDay <= end.TimeOfDay;
+        return timeToCheck.TimeOfDay >= start.TimeOfDay && end.AddHours(-0.5).TimeOfDay >= timeToCheck.TimeOfDay;
     } 
 }
