@@ -122,7 +122,7 @@ public class XlsxConverter
         string firstName, lastName;
         var nameCellValue = _ws.Cells[row, _nameColumn].Value?.ToString();
 
-        if (string.IsNullOrEmpty(nameCellValue)) throw new ArgumentNullException($"Name cell at row:{row} column:{_nameColumn} was null");
+        if (string.IsNullOrWhiteSpace(nameCellValue)) throw new ArgumentNullException($"Name cell at row:{row} column:{_nameColumn} was null");
 
         (firstName, lastName) = StringHelpers.GetFirstAndLastName(nameCellValue);
         // Try to match employee from database here
@@ -214,14 +214,15 @@ public class XlsxConverter
         DateTime wholeShiftStart = _timeIndex[firstJobKeyColumn];
 
         JobPosition startingJobPosition;
-        if(!string.IsNullOrEmpty(employeePreferences.PositionOverride))
+        if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride))
             startingJobPosition = FindJobPosition(employeePreferences.PositionOverride, 1);
         else
             startingJobPosition = FindJobPosition(jobKeys[0].JobKey, row);
+        
         // Get split shifts here
         for (int i = 0; i < jobKeys.Count; i++)
         {
-            if(!string.IsNullOrEmpty(employeePreferences.PositionOverride))
+            if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride))
             {
                 shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition));
                 break;
@@ -274,7 +275,7 @@ public class XlsxConverter
     {
         string? jobName = string.Empty;
         // File's job key is null as of making this and I could not think of anything other than hardcoding it
-        if (string.IsNullOrEmpty(jobKey))
+        if (string.IsNullOrWhiteSpace(jobKey))
             jobName = "File Clerk";
 
         else if (jobKey == "F")
@@ -283,7 +284,7 @@ public class XlsxConverter
         else if (JobFinder.JobKeys.ContainsKey(jobKey))
             jobName = JobFinder.JobKeys[jobKey];
 
-        if (string.IsNullOrEmpty(jobName))
+        if (string.IsNullOrWhiteSpace(jobName))
             jobName = "Miscellaneous";
 
 
