@@ -150,7 +150,7 @@ public class XlsxConverter
         {
             // Actual time ending would be the cell right after the last filled cell, hence col - 1 for all checks
             fillColor = _ws.Cells[row, col - 1].Style.Fill.BackgroundColor.Rgb;
-            if (fillColor == JobFinder.jobCellFillRgb)
+            if (fillColor == JobFinder.JobCellFillRgb)
             {
                 jobEndColumn = col;
                 break;
@@ -169,11 +169,11 @@ public class XlsxConverter
         int firstJobKeyColumn = 0;
 
         // Finding beginning of shift and all splits 
-
+        
         for (int col = 1; col <= jobEndColumn; col++)
         {
             fillColor = _ws.Cells[row, col].Style.Fill.BackgroundColor.Rgb;
-            if (fillColor == JobFinder.jobCellFillRgb)
+            if (fillColor == JobFinder.JobCellFillRgb)
             {
                 string? currentKey = _ws.Cells[row, col].Value?.ToString();
                 if (jobKeys.Count < 1)
@@ -181,11 +181,15 @@ public class XlsxConverter
                     jobKeys.Add((currentKey, col));
                     firstJobKeyColumn = col;
                 }
+                else if(currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey) && currentKey != jobKeys.Last().jobKey) 
+                {
+                    jobKeys.Add((currentKey, col));
+                }
                 else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().jobKey)
                 {
 
-                    var previousJobName = JobFinder.jobKeys[jobKeys.Last().jobKey ?? ""];
-                    var currentJobName = JobFinder.jobKeys[currentKey];
+                    var previousJobName = JobFinder.JobKeys[jobKeys.Last().jobKey ?? ""];
+                    var currentJobName = JobFinder.JobKeys[currentKey];
 
                     if (!(previousJobName.Contains("Front") && currentJobName.Contains("Front"))
                         && !(!StringHelpers.ContainsOne(previousJobName, ["Front", "Fuel", "Liquor"]) && !StringHelpers.ContainsOne(currentJobName, ["Front", "Fuel", "Liquor"]))
@@ -276,8 +280,8 @@ public class XlsxConverter
         else if (jobKey == "F")
             jobName = _ws.Cells[row, _jobColumn].Value?.ToString();
 
-        else if (JobFinder.jobKeys.ContainsKey(jobKey))
-            jobName = JobFinder.jobKeys[jobKey];
+        else if (JobFinder.JobKeys.ContainsKey(jobKey))
+            jobName = JobFinder.JobKeys[jobKey];
 
         if (string.IsNullOrEmpty(jobName))
             jobName = "Miscellaneous";

@@ -4,7 +4,7 @@
     {
         // Dictionary used to properly group employees together
         // These are supject to change randomly for no reason, pretty much whenever
-        public static readonly Dictionary<string, string> jobKeys = new()
+        public static readonly Dictionary<string, string> JobKeys = new()
         {
             // Front End Keys, given breaks
             {"P", "Front End Supervisor" },
@@ -29,7 +29,7 @@
         // For tracking sub jobs that are still in the parent section but needed for other purposes
         // Structured as SubJob's key ->
         // i.e. Utility clerks should not be scheduled for carts
-        public static readonly Dictionary<string, SubJobKeyDescription> subJobKeys = new()
+        public static readonly Dictionary<string, SubJobKeyDescription> SubJobKeys = new()
         {
             {"/", new SubJobKeyDescription("B", "Front End Utility Clerk")}, 
         };
@@ -45,7 +45,7 @@
         // The ~ and ^ are breaks and lunches I think. The rest are trash icons typically from bad reports which can sometimes be fixed by re-running the report. 
         public static readonly string[] NonJobKeys = new string[] { "~", "^", "•", "*", "=" };
 
-        public static readonly string jobCellFillRgb = "FFC0C0C0"; // Tried the index and that didn't work sooo Rgb
+        public static readonly string JobCellFillRgb = "FFC0C0C0"; // Tried the index and that didn't work sooo Rgb
 
     }
 }
