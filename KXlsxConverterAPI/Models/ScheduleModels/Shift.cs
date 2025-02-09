@@ -11,4 +11,5 @@ public class Shift
     public DateTime? Lunch { get; set; } = null;
     public DateTime? BreakTwo { get; set; } = null;
     public string OriginalPosition { get; set; } = string.Empty;
+    public Subshift? Subshift {get; set;}
 }

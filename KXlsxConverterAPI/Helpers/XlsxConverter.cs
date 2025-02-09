@@ -222,10 +222,12 @@ public class XlsxConverter
                         {
                             jobKeys.Add(new JobKeyTracker(currentKey, col));
                         }
+                } else if (currentKey != null && currentKey == jobKeys.Last().JobKey && !string.IsNullOrWhiteSpace(jobKeys.Last().SubJobKey)) {
+                    jobKeys.Last().SubJobEndColumn = col;
                 }
             }
         }
-        
+
         // Throwing error if jobStartColumn was never found
         if (firstJobKeyColumn == 0)
         {
@@ -256,15 +258,32 @@ public class XlsxConverter
             if (i == 0)
             {
                 var firstShiftEnd = i == jobKeys.Count - 1 ? wholeShiftEnd : _timeIndex[jobKeys[i + 1].JobStartColumn];
-                shifts.Add(new ShiftData(wholeShiftStart, firstShiftEnd, startingJobPosition));
+                
+                if (!string.IsNullOrWhiteSpace(jobKeys[i].SubJobKey))
+                {
+                    shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition, _timeIndex[jobKeys[i].SubJobStartColumn], jobKeys[i].SubJobEndColumn > -1 ? _timeIndex[jobKeys[i].SubJobEndColumn] : firstShiftEnd, JobFinder.SubJobKeys[jobKeys[i].SubJobKey].Title));
+                } else {
+                    shifts.Add(new ShiftData(wholeShiftStart, firstShiftEnd, startingJobPosition));
+                }
             }
             else if (i == jobKeys.Count - 1)
             {
-                shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].JobKey, row)));
+                if (!string.IsNullOrWhiteSpace(jobKeys[i].SubJobKey))
+                {
+                    shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition, _timeIndex[jobKeys[i].SubJobStartColumn], jobKeys[i].SubJobEndColumn > -1 ? _timeIndex[jobKeys[i].SubJobEndColumn] : wholeShiftEnd, JobFinder.SubJobKeys[jobKeys[i].SubJobKey].Title));
+                } else 
+                {
+                    shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].JobKey, row)));
+                }
             }
             else
             {
-                shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], _timeIndex[jobKeys[i + 1].JobStartColumn], FindJobPosition(jobKeys[i].JobKey, row)));
+                if (!string.IsNullOrWhiteSpace(jobKeys[i].SubJobKey))
+                {
+                    shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition, _timeIndex[jobKeys[i].SubJobStartColumn], jobKeys[i].SubJobEndColumn > -1 ? _timeIndex[jobKeys[i].SubJobEndColumn] : _timeIndex[jobKeys[i + 1].JobStartColumn], JobFinder.SubJobKeys[jobKeys[i].SubJobKey].Title));
+                } else {
+                    shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], _timeIndex[jobKeys[i + 1].JobStartColumn], FindJobPosition(jobKeys[i].JobKey, row)));
+                }
             }
         }
 
@@ -288,11 +307,16 @@ public class XlsxConverter
             var shiftLunch = lunch != null && lunch.Value.TimeOfDay >= shift.Start.TimeOfDay && lunch.Value.TimeOfDay < shift.End.TimeOfDay ? lunch : null;
             var shiftBreakTwo = breakTwo != null && breakTwo.Value.TimeOfDay >= shift.Start.TimeOfDay && breakTwo.Value.TimeOfDay < shift.End.TimeOfDay ? breakTwo : null;
             string? jobColumnValue = _ws.Cells[row, _jobColumn].Value?.ToString();
+            Subshift? subShift = null;
+            if (!string.IsNullOrWhiteSpace(shift.SubJobName)) 
+            {
+                subShift = new() {ShiftStart = shift.SubStart!.Value, ShiftEnd = shift.SubEnd!.Value, OriginalPosition = shift.SubJobName};
+            }
 
             // Actual shift processing done here
             CreateAndAddShift(!string.IsNullOrWhiteSpace(employeePreferences.PreferredFirstName) ? employeePreferences.PreferredFirstName : employeePreferences.FirstName, employeePreferences.LastName
                 , jobColumnValue ?? "", shift.Start, shift.End, shiftBreakOne, shiftLunch
-                , shiftBreakTwo, shift.Position, employeePreferences.BathroomOrder, employeePreferences.IsACallUp);
+                , shiftBreakTwo, shift.Position, employeePreferences.BathroomOrder, employeePreferences.IsACallUp, subShift);
         }
 
     }
@@ -332,8 +356,9 @@ public class XlsxConverter
     }
 
 
-    private void CreateAndAddShift(string firstName, string lastName, string jobColumnValue, DateTime shiftStart
-        , DateTime shiftEnd, DateTime? breakOne, DateTime? lunch, DateTime? breakTwo, JobPosition jobPosition, int bathroomOrder, bool isCallUp)
+    private void CreateAndAddShift(string firstName, string lastName, string jobColumnValue, DateTime shiftStart,
+         DateTime shiftEnd, DateTime? breakOne, DateTime? lunch, DateTime? breakTwo, JobPosition jobPosition, int bathroomOrder, 
+         bool isCallUp, Subshift? subShift = null)
     {
 
         var newShift = new Shift();
@@ -347,6 +372,7 @@ public class XlsxConverter
         newShift.Lunch = lunch;
         newShift.BreakTwo = breakTwo;
         newShift.OriginalPosition = jobPosition.Name;
+        newShift.Subshift = subShift;
 
         if ((!jobPosition.Name.Contains("Front") || jobPosition.Name.Contains("File")) && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel")
             && (isCallUp || jobPosition.Name.Contains("Floral") || jobPosition.Name.Contains("Apparel")))
