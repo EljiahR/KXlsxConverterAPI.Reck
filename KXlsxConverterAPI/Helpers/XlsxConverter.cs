@@ -118,7 +118,7 @@ public class XlsxConverter
     {
         if (_currentDay == null) throw new ArgumentNullException("currentDay should not be null");
 
-        var shifts = new List<(DateTime start, DateTime end, JobPosition jobPosition)>();
+        var shifts = new List<ShiftData>();
         string firstName, lastName;
         var nameCellValue = _ws.Cells[row, _nameColumn].Value?.ToString();
 
@@ -223,21 +223,21 @@ public class XlsxConverter
         {
             if(!string.IsNullOrEmpty(employeePreferences.PositionOverride))
             {
-                shifts.Add((wholeShiftStart, wholeShiftEnd, startingJobPosition));
+                shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition));
                 break;
             }
             if (i == 0)
             {
                 var firstShiftEnd = i == jobKeys.Count - 1 ? wholeShiftEnd : _timeIndex[jobKeys[i + 1].jobStartColumn];
-                shifts.Add((wholeShiftStart, firstShiftEnd, startingJobPosition));
+                shifts.Add(new ShiftData(wholeShiftStart, firstShiftEnd, startingJobPosition));
             }
             else if (i == jobKeys.Count - 1)
             {
-                shifts.Add((_timeIndex[jobKeys[i].jobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].jobKey, row)));
+                shifts.Add(new ShiftData(_timeIndex[jobKeys[i].jobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].jobKey, row)));
             }
             else
             {
-                shifts.Add((_timeIndex[jobKeys[i].jobStartColumn], _timeIndex[jobKeys[i + 1].jobStartColumn], FindJobPosition(jobKeys[i].jobKey, row)));
+                shifts.Add(new ShiftData(_timeIndex[jobKeys[i].jobStartColumn], _timeIndex[jobKeys[i + 1].jobStartColumn], FindJobPosition(jobKeys[i].jobKey, row)));
             }
         }
 
@@ -248,7 +248,7 @@ public class XlsxConverter
         DateTime? lunch = null;
         DateTime? breakTwo = null;
         // Getting breaks for front end employees
-        if (shifts.Any(shift => shift.jobPosition.Name.Contains("Front")))
+        if (shifts.Any(shift => shift.Position.Name.Contains("Front")))
         {
             bool isAdult = employeePreferences.Birthday.HasValue ? (_currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
             (breakOne, lunch, breakTwo) = EmployeeHelpers.GetBreaks(
@@ -257,15 +257,15 @@ public class XlsxConverter
 
         foreach (var shift in shifts)
         {
-            var shiftBreakOne = breakOne != null && breakOne.Value.TimeOfDay >= shift.start.TimeOfDay && breakOne.Value.TimeOfDay < shift.end.TimeOfDay ? breakOne : null;
-            var shiftLunch = lunch != null && lunch.Value.TimeOfDay >= shift.start.TimeOfDay && lunch.Value.TimeOfDay < shift.end.TimeOfDay ? lunch : null;
-            var shiftBreakTwo = breakTwo != null && breakTwo.Value.TimeOfDay >= shift.start.TimeOfDay && breakTwo.Value.TimeOfDay < shift.end.TimeOfDay ? breakTwo : null;
+            var shiftBreakOne = breakOne != null && breakOne.Value.TimeOfDay >= shift.Start.TimeOfDay && breakOne.Value.TimeOfDay < shift.End.TimeOfDay ? breakOne : null;
+            var shiftLunch = lunch != null && lunch.Value.TimeOfDay >= shift.Start.TimeOfDay && lunch.Value.TimeOfDay < shift.End.TimeOfDay ? lunch : null;
+            var shiftBreakTwo = breakTwo != null && breakTwo.Value.TimeOfDay >= shift.Start.TimeOfDay && breakTwo.Value.TimeOfDay < shift.End.TimeOfDay ? breakTwo : null;
             string? jobColumnValue = _ws.Cells[row, _jobColumn].Value?.ToString();
 
             // Actual shift processing done here
             CreateAndAddShift(!string.IsNullOrWhiteSpace(employeePreferences.PreferredFirstName) ? employeePreferences.PreferredFirstName : employeePreferences.FirstName, employeePreferences.LastName
-                , jobColumnValue ?? "", shift.start, shift.end, shiftBreakOne, shiftLunch
-                , shiftBreakTwo, shift.jobPosition, employeePreferences.BathroomOrder, employeePreferences.IsACallUp);
+                , jobColumnValue ?? "", shift.Start, shift.End, shiftBreakOne, shiftLunch
+                , shiftBreakTwo, shift.Position, employeePreferences.BathroomOrder, employeePreferences.IsACallUp);
         }
 
     }
