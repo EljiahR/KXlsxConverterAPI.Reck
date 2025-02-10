@@ -5,6 +5,6 @@ public class JobKeyTracker(string? jobKey, int jobStartColumn, string subJobKey 
     public string? JobKey = jobKey;
     public int JobStartColumn = jobStartColumn;
     public string SubJobKey = subJobKey;
-    public int SubJobStartColumn = subJobStartColumn;
-    public int SubJobEndColumn {get; set;} = subJobEndColumn;
+    public int SubJobStartColumn { get; set; } = subJobStartColumn;
+    public int SubJobEndColumn { get; set; } = subJobEndColumn;
 }
