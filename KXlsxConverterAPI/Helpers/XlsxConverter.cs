@@ -261,7 +261,7 @@ public class XlsxConverter
                 
                 if (!string.IsNullOrWhiteSpace(jobKeys[i].SubJobKey))
                 {
-                    shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition, _timeIndex[jobKeys[i].SubJobStartColumn], jobKeys[i].SubJobEndColumn > -1 ? _timeIndex[jobKeys[i].SubJobEndColumn] : firstShiftEnd, JobFinder.SubJobKeys[jobKeys[i].SubJobKey].Title));
+                    shifts.Add(new ShiftData(wholeShiftStart, firstShiftEnd, startingJobPosition, _timeIndex[jobKeys[i].SubJobStartColumn], jobKeys[i].SubJobEndColumn > -1 ? _timeIndex[jobKeys[i].SubJobEndColumn] : firstShiftEnd, JobFinder.SubJobKeys[jobKeys[i].SubJobKey].Title));
                 } else {
                     shifts.Add(new ShiftData(wholeShiftStart, firstShiftEnd, startingJobPosition));
                 }
@@ -270,7 +270,7 @@ public class XlsxConverter
             {
                 if (!string.IsNullOrWhiteSpace(jobKeys[i].SubJobKey))
                 {
-                    shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition, _timeIndex[jobKeys[i].SubJobStartColumn], jobKeys[i].SubJobEndColumn > -1 ? _timeIndex[jobKeys[i].SubJobEndColumn] : wholeShiftEnd, JobFinder.SubJobKeys[jobKeys[i].SubJobKey].Title));
+                    shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].JobKey, row), _timeIndex[jobKeys[i].SubJobStartColumn], jobKeys[i].SubJobEndColumn > -1 ? _timeIndex[jobKeys[i].SubJobEndColumn] : wholeShiftEnd, JobFinder.SubJobKeys[jobKeys[i].SubJobKey].Title));
                 } else 
                 {
                     shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], wholeShiftEnd, FindJobPosition(jobKeys[i].JobKey, row)));
@@ -280,7 +280,7 @@ public class XlsxConverter
             {
                 if (!string.IsNullOrWhiteSpace(jobKeys[i].SubJobKey))
                 {
-                    shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition, _timeIndex[jobKeys[i].SubJobStartColumn], jobKeys[i].SubJobEndColumn > -1 ? _timeIndex[jobKeys[i].SubJobEndColumn] : _timeIndex[jobKeys[i + 1].JobStartColumn], JobFinder.SubJobKeys[jobKeys[i].SubJobKey].Title));
+                    shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], _timeIndex[jobKeys[i + 1].JobStartColumn], FindJobPosition(jobKeys[i].JobKey, row), _timeIndex[jobKeys[i].SubJobStartColumn], jobKeys[i].SubJobEndColumn > -1 ? _timeIndex[jobKeys[i].SubJobEndColumn] : _timeIndex[jobKeys[i + 1].JobStartColumn], JobFinder.SubJobKeys[jobKeys[i].SubJobKey].Title));
                 } else {
                     shifts.Add(new ShiftData(_timeIndex[jobKeys[i].JobStartColumn], _timeIndex[jobKeys[i + 1].JobStartColumn], FindJobPosition(jobKeys[i].JobKey, row)));
                 }
