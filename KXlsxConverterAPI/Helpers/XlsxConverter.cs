@@ -205,7 +205,7 @@ public class XlsxConverter
                     }
                 }
                 // New job key (possible split shift)
-                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().JobKey && jobKeys.Last().SubJobKey != "" && currentKey != jobKeys.Last().SubJobKey)
+                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().JobKey && (jobKeys.Last().SubJobKey != "" || currentKey != jobKeys.Last().SubJobKey))
                 {
 
                     var previousJobName = JobFinder.JobKeys[jobKeys.Last().JobKey ?? ""];
