@@ -215,7 +215,7 @@ public class XlsxConverter
                         && !(!StringHelpers.ContainsOne(previousJobName, ["Front", "Fuel", "Liquor"]) && !StringHelpers.ContainsOne(currentJobName, ["Front", "Fuel", "Liquor"]))
                         && previousJobName != currentJobName)
                         
-                        if (currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey))
+                        if (JobFinder.SubJobKeys.ContainsKey(currentKey))
                         {
                             jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
                         } else 
