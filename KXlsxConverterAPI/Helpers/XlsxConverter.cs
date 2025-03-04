@@ -217,6 +217,9 @@ public class XlsxConverter
                             jobKeys.Add(new JobKeyTracker(currentKey, col));  
                         }
                     }                 
+                } else if (jobKeys.Last().JobKey == currentKey && !string.IsNullOrWhiteSpace(jobKeys.Last().SubJobKey))
+                {
+                    jobKeys.Last().SubJobEndColumn = col;
                 }
             }
         }
