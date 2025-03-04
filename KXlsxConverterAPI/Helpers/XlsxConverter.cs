@@ -190,12 +190,21 @@ public class XlsxConverter
                     firstJobKeyColumn = col;
                 }
                 // New job key (possible split shift, or possible subjob)
+                // Runs when currentKey is a valid job or subjob key that is different from what was last found
                 else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && (currentKey != jobKeys.Last().JobKey || currentKey != jobKeys.Last().SubJobKey))
                 {
+                    // Subkey handler
                     if (JobFinder.SubJobKeys.ContainsKey(currentKey)) 
                     {
-
-                    } else {
+                        if (JobFinder.SubJobKeys[currentKey].ParentKey == jobKeys.Last().JobKey)
+                        {
+                            jobKeys.Last().SubJobKey = currentKey;
+                            jobKeys.Last().SubJobStartColumn = col;
+                        } else {
+                            jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
+                        }
+                    } else 
+                    {
                         var previousJobName = JobFinder.JobKeys[jobKeys.Last().JobKey ?? ""];
                         var currentJobName = JobFinder.JobKeys[currentKey];
 
@@ -205,19 +214,9 @@ public class XlsxConverter
                             && previousJobName != currentJobName
                         )
                         {
-                            if (JobFinder.SubJobKeys.ContainsKey(currentKey))
-                            {
-                                jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
-                            } else 
-                            {
-                                jobKeys.Add(new JobKeyTracker(currentKey, col));
-                            }
+                            jobKeys.Add(new JobKeyTracker(currentKey, col));  
                         }
-                    }
-                    
-                    
-                } else if (currentKey != null && currentKey == jobKeys.Last().JobKey && !string.IsNullOrWhiteSpace(jobKeys.Last().SubJobKey)) {
-                    jobKeys.Last().SubJobEndColumn = col;
+                    }                 
                 }
             }
         }
