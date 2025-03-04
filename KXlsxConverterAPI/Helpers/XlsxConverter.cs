@@ -189,40 +189,36 @@ public class XlsxConverter
                     }
                     firstJobKeyColumn = col;
                 }
-                // Checking for subkeys
-                else if(currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey) && currentKey != jobKeys.Last().JobKey && currentKey != jobKeys.Last().SubJobKey) 
+                // New job key (possible split shift, or possible subjob)
+                // Runs when currentKey is a valid job or subjob key that is different from what was last found
+                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().JobKey && currentKey != jobKeys.Last().SubJobKey)
                 {
-                    // Modifying previous job if it is parent of found subjobkey
-                    if (JobFinder.SubJobKeys[currentKey].ParentKey == jobKeys.Last().JobKey)
+                    // Subkey handler
+                    if (JobFinder.SubJobKeys.ContainsKey(currentKey)) 
                     {
-                        jobKeys.Last().SubJobKey = currentKey;
-                        jobKeys.Last().SubJobStartColumn = col;
-                    }
-                    // New jobkey starting with subjobkey
-                    else
-                    {
-                        jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
-                    }
-                }
-                // New job key (possible split shift)
-                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().JobKey && jobKeys.Last().SubJobKey != "" && currentKey != jobKeys.Last().SubJobKey)
-                {
-
-                    var previousJobName = JobFinder.JobKeys[jobKeys.Last().JobKey ?? ""];
-                    var currentJobName = JobFinder.JobKeys[currentKey];
-
-                    if (!(previousJobName.Contains("Front") && currentJobName.Contains("Front"))
-                        && !(!StringHelpers.ContainsOne(previousJobName, ["Front", "Fuel", "Liquor"]) && !StringHelpers.ContainsOne(currentJobName, ["Front", "Fuel", "Liquor"]))
-                        && previousJobName != currentJobName)
-                        
-                        if (currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey))
+                        if (JobFinder.SubJobKeys[currentKey].ParentKey == jobKeys.Last().JobKey)
                         {
+                            jobKeys.Last().SubJobKey = currentKey;
+                            jobKeys.Last().SubJobStartColumn = col;
+                        } else {
                             jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
-                        } else 
-                        {
-                            jobKeys.Add(new JobKeyTracker(currentKey, col));
                         }
-                } else if (currentKey != null && currentKey == jobKeys.Last().JobKey && !string.IsNullOrWhiteSpace(jobKeys.Last().SubJobKey)) {
+                    } else 
+                    {
+                        var previousJobName = JobFinder.JobKeys[jobKeys.Last().JobKey ?? ""];
+                        var currentJobName = JobFinder.JobKeys[currentKey];
+
+                        if (
+                            !(previousJobName.Contains("Front") && currentJobName.Contains("Front"))
+                            && !(!StringHelpers.ContainsOne(previousJobName, ["Front", "Fuel", "Liquor"]) && !StringHelpers.ContainsOne(currentJobName, ["Front", "Fuel", "Liquor"]))
+                            && previousJobName != currentJobName
+                        )
+                        {
+                            jobKeys.Add(new JobKeyTracker(currentKey, col));  
+                        }
+                    }                 
+                } else if (jobKeys.Last().JobKey == currentKey && !string.IsNullOrWhiteSpace(jobKeys.Last().SubJobKey))
+                {
                     jobKeys.Last().SubJobEndColumn = col;
                 }
             }
