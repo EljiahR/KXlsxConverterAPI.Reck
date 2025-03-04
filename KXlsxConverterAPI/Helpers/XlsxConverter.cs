@@ -191,7 +191,7 @@ public class XlsxConverter
                 }
                 // New job key (possible split shift, or possible subjob)
                 // Runs when currentKey is a valid job or subjob key that is different from what was last found
-                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && (currentKey != jobKeys.Last().JobKey || currentKey != jobKeys.Last().SubJobKey))
+                else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().JobKey && currentKey != jobKeys.Last().SubJobKey)
                 {
                     // Subkey handler
                     if (JobFinder.SubJobKeys.ContainsKey(currentKey)) 
