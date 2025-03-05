@@ -126,7 +126,7 @@ public class EmployeeHelpers
                     && (currentBagger.BreakOne == null || TimesOverlap(currentBagger.BreakOne.Value, currentSlot.Time))
                     && (currentBagger.Lunch == null || TimesOverlap(currentBagger.Lunch.Value, currentSlot.Time))
                     && (currentBagger.BreakTwo == null || TimesOverlap(currentBagger.BreakTwo.Value, currentSlot.Time)
-                    && (currentBagger.Subshift == null || !TimeIsInBetween(currentBagger.Subshift.ShiftStart, currentBagger.Subshift.ShiftEnd, currentSlot.Time)))
+                    /*&& (currentBagger.Subshift == null || !TimeIsInBetween(currentBagger.Subshift.ShiftStart, currentBagger.Subshift.ShiftEnd, currentSlot.Time))*/)
                     )
                 {
                     int slotToFill = Array.FindIndex(currentSlot.Baggers, x => string.IsNullOrEmpty(x));
