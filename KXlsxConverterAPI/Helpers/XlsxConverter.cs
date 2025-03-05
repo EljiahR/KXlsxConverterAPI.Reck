@@ -80,7 +80,11 @@ public class XlsxConverter
                         _holidays = await SpecialDayHelpers.GetHolidays(_currentDay.Date.ToString("yyyy"));
                     }
                     // Checking for holidays for current day
-                    if (_holidays)
+                    var holidays = _holidays.Where(h => h.Date == _currentDay.Date).Select(h => h.Name!).ToList();
+                    if (holidays.Count > 0) 
+                    {
+                        _currentDay.Holidays = holidays;
+                    }
 
                     // Reseting bathroom bagger
                     _bathroomShift = null;
