@@ -2,7 +2,6 @@
 using KXlsxConverterAPI.Models.ScheduleModels;
 using OfficeOpenXml;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace KXlsxConverterAPI.Helpers;
 

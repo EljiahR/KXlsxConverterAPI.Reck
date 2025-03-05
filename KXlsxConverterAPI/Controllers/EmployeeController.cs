@@ -147,7 +147,7 @@ public class EmployeeController : ControllerBase
                     var ws = package.Workbook.Worksheets[0];
                     if (ws == null) throw new NullReferenceException("No usable worksheet was found");
                     XlsxConverter converter = new XlsxConverter(allEmployees, ws);
-                    fixedSchedule = converter.ConvertXlsx();
+                    fixedSchedule = await converter.ConvertXlsx();
                 }
 
 
