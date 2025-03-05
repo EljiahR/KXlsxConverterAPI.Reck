@@ -4,6 +4,8 @@ public class WeekdaySchedule
 {
     public string Day { get; set; } // Sunday, Monday, etc..
     public DateTime Date { get; set; }
+    public List<string> Holidays {get; set;} = new();
+    public List<string> Birthdays {get; set;} = new();
     public List<JobPosition> JobPositions { get; set; } = new List<JobPosition>();
     public CartSlot[] Carts { get; set; } // 36 slots, starting at 6:00a + 30m until 11:30p
     public Dictionary<string, List<string>> Errors { get; set; } = new();

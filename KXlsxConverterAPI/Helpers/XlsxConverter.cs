@@ -32,6 +32,8 @@ public class XlsxConverter
 
     private IEnumerable<Employee> _storeEmployees;
 
+    private PublicHoliday[]? _holidays = null;
+
     public XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet ws)
     {
         _days = new();
@@ -39,7 +41,7 @@ public class XlsxConverter
         _storeEmployees = storeEmployees; // Injecting whatever employee list was found before this converter was created
         _ws = ws; // Injecting Excel ws from uploaded file
     }
-    public List<WeekdaySchedule> ConvertXlsx()
+    public async Task<List<WeekdaySchedule>> ConvertXlsx()
     {
         _rowCount = _ws.Dimension.Rows;
         _colCount = _ws.Dimension.Columns;
@@ -66,8 +68,30 @@ public class XlsxConverter
                         var baggerShifts = _currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
                         if (baggerShifts != null) EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift);
                     }
+                    
+                     
 
                     _currentDay = new WeekdaySchedule(newWeekday.ToString("dddd"), newWeekday);
+                    
+                    // Initializing holidays
+                    if (_holidays == null || _days.Last().Date.ToString("yyyy") != _currentDay.Date.ToString("yyyy")) 
+                    {
+                        _holidays = await SpecialDayHelpers.GetHolidays(_currentDay.Date.ToString("yyyy"));
+                    }
+                    // Checking for holidays for current day
+                    var holidays = _holidays.Where(h => h.Date == _currentDay.Date).Select(h => h.Name!).ToList();
+                    if (holidays.Count > 0) 
+                    {
+                        _currentDay.Holidays = holidays;
+                    }
+
+                    // Checking for birthdays
+                    var birthdays = _storeEmployees.Where(e => e.Birthday != null && !e.HideBirthday && e.Birthday.Value.ToString("M") == _currentDay.Date.ToString("M")).Select(e => (string.IsNullOrWhiteSpace(e.PreferredFirstName) ? e.FirstName : e.PreferredFirstName) + " " + e.LastName).ToList();
+                    if (birthdays.Count > 0)
+                    {
+                        _currentDay.Birthdays = birthdays;
+                    }
+
                     // Reseting bathroom bagger
                     _bathroomShift = null;
                     _bathroomShiftOrder = -1;
