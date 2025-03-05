@@ -86,7 +86,7 @@ public class XlsxConverter
                     }
 
                     // Checking for birthdays
-                    var birthdays = _storeEmployees.Where(e => e.Birthday != null && !e.HideBirthday && e.Birthday.Value.ToString("M") == _currentDay.Date.ToString("M")).Select(e => (string.IsNullOrWhiteSpace(e.PreferredFirstName) ? e.FirstName : e.PreferredFirstName) + e.LastName).ToList();
+                    var birthdays = _storeEmployees.Where(e => e.Birthday != null && !e.HideBirthday && e.Birthday.Value.ToString("M") == _currentDay.Date.ToString("M")).Select(e => (string.IsNullOrWhiteSpace(e.PreferredFirstName) ? e.FirstName : e.PreferredFirstName) + " " + e.LastName).ToList();
                     if (birthdays.Count > 0)
                     {
                         _currentDay.Birthdays = birthdays;
