@@ -32,6 +32,8 @@ public class XlsxConverter
 
     private IEnumerable<Employee> _storeEmployees;
 
+    private PublicHoliday[]? _holidays = null;
+
     public XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet ws)
     {
         _days = new();
