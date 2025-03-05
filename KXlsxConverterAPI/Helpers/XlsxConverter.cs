@@ -2,6 +2,7 @@
 using KXlsxConverterAPI.Models.ScheduleModels;
 using OfficeOpenXml;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace KXlsxConverterAPI.Helpers;
 
@@ -41,7 +42,7 @@ public class XlsxConverter
         _storeEmployees = storeEmployees; // Injecting whatever employee list was found before this converter was created
         _ws = ws; // Injecting Excel ws from uploaded file
     }
-    public List<WeekdaySchedule> ConvertXlsx()
+    public async Task<List<WeekdaySchedule>> ConvertXlsx()
     {
         _rowCount = _ws.Dimension.Rows;
         _colCount = _ws.Dimension.Columns;
@@ -68,8 +69,19 @@ public class XlsxConverter
                         var baggerShifts = _currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
                         if (baggerShifts != null) EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift);
                     }
+                    
+                     
 
                     _currentDay = new WeekdaySchedule(newWeekday.ToString("dddd"), newWeekday);
+                    
+                    // Initializing holidays
+                    if (_holidays == null || _days.Last().Date.ToString("yyyy") != _currentDay.Date.ToString("yyyy")) 
+                    {
+                        _holidays = await SpecialDayHelpers.GetHolidays(_currentDay.Date.ToString("yyyy"));
+                    }
+                    // Checking for holidays for current day
+                    if (_holidays)
+
                     // Reseting bathroom bagger
                     _bathroomShift = null;
                     _bathroomShiftOrder = -1;
