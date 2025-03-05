@@ -7,6 +7,7 @@ public class Employee
     public string? PreferredFirstName { get; set; } // Name employee prefers if there is one
     public string LastName { get; set; } = string.Empty; // Don't make me explain it
     public DateTime? Birthday { get; set; } // Only Year, Month, and Day necessary
+    public bool HideBirthday {get; set;} = false;
     public int PreferredNumberOfBreaks { get; set; } = 2; // Preferred number of break if working >= 6 hours, should default to 2
 
     // Minors get a mandatory 30 minute unpaid lunch when working >= 6 hours, deducts from shift length
