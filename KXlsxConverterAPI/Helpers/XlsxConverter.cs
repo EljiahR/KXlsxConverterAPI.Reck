@@ -86,6 +86,13 @@ public class XlsxConverter
                         _currentDay.Holidays = holidays;
                     }
 
+                    // Checking for birthdays
+                    var birthdays = _storeEmployees.Where(e => e.Birthday != null && e.Birthday.Value.ToString("M") == _currentDay.Date.ToString("M")).Select(e => (string.IsNullOrWhiteSpace(e.PreferredFirstName) ? e.FirstName : e.PreferredFirstName) + e.LastName).ToList();
+                    if (birthdays.Count > 0)
+                    {
+                        _currentDay.Birthdays = birthdays;
+                    }
+
                     // Reseting bathroom bagger
                     _bathroomShift = null;
                     _bathroomShiftOrder = -1;
