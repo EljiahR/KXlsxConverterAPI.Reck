@@ -149,8 +149,6 @@ public class EmployeeController : ControllerBase
                     XlsxConverter converter = new XlsxConverter(allEmployees, ws);
                     fixedSchedule = await converter.ConvertXlsx();
                 }
-
-
             }
 
             return Ok(fixedSchedule);
