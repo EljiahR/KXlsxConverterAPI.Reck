@@ -334,7 +334,7 @@ public class XlsxConverter
             }
 
             // Actual shift processing done here
-            CreateAndAddShift(!string.IsNullOrWhiteSpace(employeePreferences.PreferredFirstName) ? employeePreferences.PreferredFirstName : employeePreferences.FirstName, employeePreferences.LastName
+            CreateAndAddShift(employeePreferences.EmployeeId, !string.IsNullOrWhiteSpace(employeePreferences.PreferredFirstName) ? employeePreferences.PreferredFirstName : employeePreferences.FirstName, employeePreferences.LastName
                 , jobColumnValue ?? "", shift.Start, shift.End, shiftBreakOne, shiftLunch
                 , shiftBreakTwo, shift.Position, employeePreferences.BathroomOrder, employeePreferences.IsACallUp, subShift);
         }
@@ -376,13 +376,13 @@ public class XlsxConverter
     }
 
 
-    private void CreateAndAddShift(string firstName, string lastName, string jobColumnValue, DateTime shiftStart,
+    private void CreateAndAddShift(int id, string firstName, string lastName, string jobColumnValue, DateTime shiftStart,
          DateTime shiftEnd, DateTime? breakOne, DateTime? lunch, DateTime? breakTwo, JobPosition jobPosition, int bathroomOrder, 
          bool isCallUp, Subshift? subShift = null)
     {
 
         var newShift = new Shift();
-
+        newShift.EmployeeId = id.ToString();
         newShift.FirstName = firstName;
         newShift.BaggerName = firstName;
         newShift.LastName = lastName;
