@@ -418,7 +418,7 @@ public class XlsxConverter
             jobPosition.Shifts.Add(newShift);
 
             // Getting the most appropriate bagger for restrooms
-            if (jobPosition.Name.Contains("Courtesy") && jobColumnValue.Contains("Courtesy") && shiftStart.Hour <= 7 && bathroomOrder != 0 && (_bathroomShiftOrder == -1 || bathroomOrder < _bathroomShiftOrder))
+            if ((jobPosition.Name.Contains("Courtesy") || jobPosition.Name.Contains("Utility")) && (jobColumnValue.Contains("Courtesy") || jobColumnValue.Contains("Utility")) && shiftStart.Hour <= 7 && bathroomOrder != 0 && (_bathroomShiftOrder == -1 || bathroomOrder < _bathroomShiftOrder))
             {
                 _bathroomShift = newShift;
                 _bathroomShiftOrder = bathroomOrder;
