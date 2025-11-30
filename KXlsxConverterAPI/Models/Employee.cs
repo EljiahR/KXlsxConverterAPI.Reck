@@ -1,4 +1,4 @@
-﻿namespace KXlsxConverterAPI.Models;
+namespace KXlsxConverterAPI.Models;
 
 public class Employee
 {
@@ -23,4 +23,5 @@ public class Employee
     public bool IsACallUp { get; set; } = false;
     public int Division { get; set; } = 0;
     public int StoreNumber { get; set; } = 0;
+    public string? PreferredLastName { get; set; } = null;
 }
