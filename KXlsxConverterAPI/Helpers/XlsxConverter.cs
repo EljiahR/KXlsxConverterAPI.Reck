@@ -1,4 +1,4 @@
-﻿using KXlsxConverterAPI.Models;
+using KXlsxConverterAPI.Models;
 using KXlsxConverterAPI.Models.ScheduleModels;
 using OfficeOpenXml;
 using System.Text.RegularExpressions;
@@ -334,7 +334,7 @@ public class XlsxConverter
             }
 
             // Actual shift processing done here
-            CreateAndAddShift(employeePreferences.EmployeeId, !string.IsNullOrWhiteSpace(employeePreferences.PreferredFirstName) ? employeePreferences.PreferredFirstName : employeePreferences.FirstName, employeePreferences.LastName
+            CreateAndAddShift(employeePreferences.EmployeeId, !string.IsNullOrWhiteSpace(employeePreferences.PreferredFirstName) ? employeePreferences.PreferredFirstName : employeePreferences.FirstName, !string.IsNullOrWhiteSpace(employeePreferences.PreferredLastName) ? employeePreferences.PreferredLastName : employeePreferences.LastName
                 , jobColumnValue ?? "", shift.Start, shift.End, shiftBreakOne, shiftLunch
                 , shiftBreakTwo, shift.Position, employeePreferences.BathroomOrder, employeePreferences.IsACallUp, subShift);
         }
