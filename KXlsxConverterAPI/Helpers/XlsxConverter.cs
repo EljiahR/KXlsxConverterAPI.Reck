@@ -262,7 +262,8 @@ public class XlsxConverter
         DateTime wholeShiftStart = _timeIndex[firstJobKeyColumn];
 
         JobPosition startingJobPosition;
-        if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride))
+        JobFinder.SubJobKeyDescription? trashValue = null; // Don't
+        if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride) && !JobFinder.SubJobKeys.TryGetValue(employeePreferences.PositionOverride, out trashValue))
             startingJobPosition = FindJobPosition(employeePreferences.PositionOverride, 1);
         else
             startingJobPosition = FindJobPosition(jobKeys[0].JobKey, row);
@@ -270,9 +271,14 @@ public class XlsxConverter
         // Get split shifts here
         for (int i = 0; i < jobKeys.Count; i++)
         {
-            if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride))
+            if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride) && !JobFinder.SubJobKeys.TryGetValue(employeePreferences.PositionOverride, out trashValue))
             {
                 shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition));
+                break;
+            }
+            else if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride) && JobFinder.SubJobKeys.TryGetValue(employeePreferences.PositionOverride, out trashValue))
+            {
+                shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition, wholeShiftStart, wholeShiftEnd, trashValue.Title));
                 break;
             }
             if (i == 0)
