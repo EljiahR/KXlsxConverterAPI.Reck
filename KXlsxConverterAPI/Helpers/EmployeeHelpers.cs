@@ -114,7 +114,7 @@ public class EmployeeHelpers
         // I know O(n^2), but timeSlot is a constant length
         for (int baggerIndex = 0; baggerIndex < Baggers.Shifts.Count; baggerIndex++)
         {
-            if (baggerIndex == bathroomBaggerIndex)
+            if (baggerIndex == bathroomBaggerIndex || Baggers.Shifts[baggerIndex].Subshift != null)
                 continue;
             currentBagger = Baggers.Shifts[baggerIndex];
             for (int timeSlot = 0; timeSlot < Carts.Length; timeSlot++)
