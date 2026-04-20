@@ -355,10 +355,13 @@ public class XlsxConverter
             jobName = "File Clerk";
 
         else if (jobKey == "F" || jobKey == "P")
+        {
             jobName = _ws.Cells[row, _jobColumn].Value?.ToString();
-
+        }
         else if (JobFinder.JobKeys.ContainsKey(jobKey))
+        {
             jobName = JobFinder.JobKeys[jobKey];
+        }
 
         if (string.IsNullOrWhiteSpace(jobName))
             jobName = "Misc.";
@@ -373,7 +376,7 @@ public class XlsxConverter
         if (jobPosition == null)
         {
             jobPosition = new JobPosition(jobName);
-            if (jobName.Contains("Front") || jobName.Contains("Fuel") || jobName.Contains("Liquor"))
+            if (jobName.Contains("Front") || jobName.Contains("Fuel") || jobName.Contains("Liquor") || jobName.Contains("Pharmacy"))
                 _currentDay.JobPositions.Add(jobPosition);
         }
 

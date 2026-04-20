@@ -220,7 +220,7 @@ public class EmployeeController : ControllerBase
         }
     }
 
-    public bool IsAdminOrMatchesDivisionAndStore(int division, int store)
+    private bool IsAdminOrMatchesDivisionAndStore(int division, int store)
     {
         var user = User;
         if (user.IsInRole("Admin")) return true;

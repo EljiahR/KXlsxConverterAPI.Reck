@@ -26,7 +26,7 @@
             {"F", "Floral Clerk" },
             {"A", "Apparel Clerk" }, // Has recently been F for some reason, overlapping with Floral
             {"D", "Dairy Clerk"},
-            { "T", "Pharmacy" }
+            { "T", "Pharmacy Technician" }
         };
 
         // For tracking sub jobs that are still in the parent section but needed for other purposes
