@@ -354,14 +354,14 @@ public class XlsxConverter
         if (string.IsNullOrWhiteSpace(jobKey))
             jobName = "File Clerk";
 
-        else if (jobKey == "F")
+        else if (jobKey == "F" || jobKey == "P")
             jobName = _ws.Cells[row, _jobColumn].Value?.ToString();
 
         else if (JobFinder.JobKeys.ContainsKey(jobKey))
             jobName = JobFinder.JobKeys[jobKey];
 
         if (string.IsNullOrWhiteSpace(jobName))
-            jobName = "Miscellaneous";
+            jobName = "Misc.";
 
 
         if (_currentDay == null)
@@ -369,7 +369,7 @@ public class XlsxConverter
             throw new NullReferenceException("currentDay was not found and cannot be null");
         }
 
-        var jobPosition = _currentDay.JobPositions.Where(j => j.Name == jobName).FirstOrDefault();
+        var jobPosition = _currentDay.JobPositions.FirstOrDefault(j => j.Name == jobName);
         if (jobPosition == null)
         {
             jobPosition = new JobPosition(jobName);
@@ -387,18 +387,20 @@ public class XlsxConverter
          bool isCallUp, Subshift? subShift = null)
     {
 
-        var newShift = new Shift();
-        newShift.EmployeeId = id.ToString();
-        newShift.FirstName = firstName;
-        newShift.BaggerName = firstName;
-        newShift.LastName = lastName;
-        newShift.ShiftStart = shiftStart;
-        newShift.ShiftEnd = shiftEnd;
-        newShift.BreakOne = breakOne;
-        newShift.Lunch = lunch;
-        newShift.BreakTwo = breakTwo;
-        newShift.OriginalPosition = jobPosition.Name;
-        newShift.Subshift = subShift;
+        var newShift = new Shift
+        {
+            EmployeeId = id.ToString(),
+            FirstName = firstName,
+            BaggerName = firstName,
+            LastName = lastName,
+            ShiftStart = shiftStart,
+            ShiftEnd = shiftEnd,
+            BreakOne = breakOne,
+            Lunch = lunch,
+            BreakTwo = breakTwo,
+            OriginalPosition = jobColumnValue,
+            Subshift = subShift
+        };
 
         if ((!jobPosition.Name.Contains("Front") || jobPosition.Name.Contains("File")) && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel")
             && (isCallUp || jobPosition.Name.Contains("Floral") || jobPosition.Name.Contains("Apparel")))
@@ -408,7 +410,7 @@ public class XlsxConverter
             {
                 throw new NullReferenceException("currentDay was not found and cannot be null");
             }
-            var callUpPosition = _currentDay.JobPositions.Where(j => j.Name == "Call Ups").FirstOrDefault();
+            var callUpPosition = _currentDay.JobPositions.FirstOrDefault(j => j.Name == "Call Ups");
             if (callUpPosition == null)
             {
                 callUpPosition = new JobPosition("Call Ups");
