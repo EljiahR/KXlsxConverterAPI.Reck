@@ -405,8 +405,8 @@ public class XlsxConverter
             Subshift = subShift
         };
 
-        if ((!jobPosition.Name.Contains("Front") || jobPosition.Name.Contains("File")) && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel")
-            && (isCallUp || jobPosition.Name.Contains("Floral") || jobPosition.Name.Contains("Apparel")))
+        if ((!jobPosition.Name.Contains("Front") && !jobPosition.Name.Contains("Liquor") && !jobPosition.Name.Contains("Fuel") && isCallUp)
+            || jobPosition.Name.Contains("Floral") || jobPosition.Name.Contains("Apparel") || jobPosition.Name.Contains("File"))
         {
 
             if (_currentDay == null)
