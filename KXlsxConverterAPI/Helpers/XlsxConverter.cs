@@ -401,7 +401,7 @@ public class XlsxConverter
             BreakOne = breakOne,
             Lunch = lunch,
             BreakTwo = breakTwo,
-            OriginalPosition = jobColumnValue,
+            OriginalPosition = jobColumnValue.Contains("Front") && !jobColumnValue.Contains("File") ? jobColumnValue : jobPosition.Name,
             Subshift = subShift
         };
 
