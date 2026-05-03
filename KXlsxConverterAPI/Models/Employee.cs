@@ -16,6 +16,9 @@ public class Employee
     // Should be null more often than not and used sparingly, mostly for fixes small bugs/errors caused by the schedule, can use DELETE 
     public string? PositionOverride { get; set; }
 
+    // Used for adding courtesy clerk coded cashiers to the policy sign off sheet, and fixing some odd call up issues
+    public string? OriginalPositionOverride { get; set; }
+
     // Should default to 0 unless a bagger and trained to clean bathrooms in the morning, should go in order of 1 scheduled 1st, 2 2nd, etc...
     public int BathroomOrder { get; set; } = 0;
 

@@ -336,13 +336,13 @@ public class XlsxConverter
             Subshift? subShift = null;
             if (!string.IsNullOrWhiteSpace(shift.SubJobName)) 
             {
-                subShift = new() {ShiftStart = shift.SubStart!.Value, ShiftEnd = shift.SubEnd!.Value, OriginalPosition = shift.SubJobName};
+                subShift = new() { ShiftStart = shift.SubStart!.Value, ShiftEnd = shift.SubEnd!.Value, OriginalPosition = shift.SubJobName };
             }
 
             // Actual shift processing done here
             CreateAndAddShift(employeePreferences.EmployeeId, !string.IsNullOrWhiteSpace(employeePreferences.PreferredFirstName) ? employeePreferences.PreferredFirstName : employeePreferences.FirstName, !string.IsNullOrWhiteSpace(employeePreferences.PreferredLastName) ? employeePreferences.PreferredLastName : employeePreferences.LastName
                 , jobColumnValue ?? "", shift.Start, shift.End, shiftBreakOne, shiftLunch
-                , shiftBreakTwo, shift.Position, employeePreferences.BathroomOrder, employeePreferences.IsACallUp, subShift);
+                , shiftBreakTwo, shift.Position, employeePreferences.BathroomOrder, employeePreferences.IsACallUp, subShift, employeePreferences.OriginalPositionOverride);
         }
 
     }
@@ -387,7 +387,7 @@ public class XlsxConverter
 
     private void CreateAndAddShift(int id, string firstName, string lastName, string jobColumnValue, DateTime shiftStart,
          DateTime shiftEnd, DateTime? breakOne, DateTime? lunch, DateTime? breakTwo, JobPosition jobPosition, int bathroomOrder, 
-         bool isCallUp, Subshift? subShift = null)
+         bool isCallUp, Subshift? subShift = null, string? originalPositionOverride = null)
     {
 
         var newShift = new Shift
@@ -401,7 +401,7 @@ public class XlsxConverter
             BreakOne = breakOne,
             Lunch = lunch,
             BreakTwo = breakTwo,
-            OriginalPosition = jobColumnValue,
+            OriginalPosition = !String.IsNullOrWhiteSpace(originalPositionOverride) ? originalPositionOverride : jobColumnValue,
             Subshift = subShift
         };
 
