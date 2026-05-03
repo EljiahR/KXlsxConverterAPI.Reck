@@ -5,16 +5,16 @@ using System.Text.RegularExpressions;
 
 namespace KXlsxConverterAPI.Helpers;
 
-public class XlsxConverter
+public class XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet ws)
 {
-    private enum _CurrentSection { FoundNewDay, FoundEmployee, FoundNothing };
-    private static Regex _dayOfWeekRegex = new Regex(@"^[A-Z]{1}[a-z]{2}\s\d{2}\/\d{2}\/\d{4}$");
-    private static Regex _nameRegex = new Regex(@"^[a-zA-Z]+,\s[a-zA-Z]+");
+    private enum CurrentSection { FoundNewDay, FoundEmployee, FoundNothing };
+    private static bool IsDayOfWeek(string input) => XlsxRegex.DayOfWeek().IsMatch(input);
+    private static bool IsName(string input) => XlsxRegex.Name().IsMatch(input);
 
-    private List<WeekdaySchedule> _days; // New list of days to be built as rows are checked
+    private readonly List<WeekdaySchedule> _days = []; // New list of days to be built as rows are checked
 
     //Column numbers are occasionally different due to random extra merged columns, so these next few variables are for fixing that
-    private Dictionary<int, DateTime> _timeIndex; // Index for what time each column represents
+    private readonly Dictionary<int, DateTime> _timeIndex = []; // Index for what time each column represents
     private int _nameColumn = 0;
     // Last three columns may not be necessary depending on how reliable the jobkey is with the time columns
     private int _locationColumn = 0;
@@ -23,24 +23,16 @@ public class XlsxConverter
     private int _endColumn = 0;
 
     private WeekdaySchedule? _currentDay;
-    private ExcelWorksheet _ws;
+    private readonly ExcelWorksheet _ws = ws;
     private int _rowCount = 0;
     private int _colCount = 0;
 
     private Shift? _bathroomShift = null;
     private int _bathroomShiftOrder = -1;
 
-    private IEnumerable<Employee> _storeEmployees;
+    private readonly IEnumerable<Employee> _storeEmployees = storeEmployees;
 
     private PublicHoliday[]? _holidays = null;
-
-    public XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet ws)
-    {
-        _days = new();
-        _timeIndex = new();
-        _storeEmployees = storeEmployees; // Injecting whatever employee list was found before this converter was created
-        _ws = ws; // Injecting Excel ws from uploaded file
-    }
     public async Task<List<WeekdaySchedule>> ConvertXlsx()
     {
         _rowCount = _ws.Dimension.Rows;
@@ -51,7 +43,7 @@ public class XlsxConverter
         for (int row = 1; row <= _rowCount; row++)
             switch (IdentifyRow(row, daysFound))
             {
-                case _CurrentSection.FoundNewDay:
+                case CurrentSection.FoundNewDay:
                     DateTime newWeekday = DateTime.Parse(_ws.Cells[row, 1].Value?.ToString() ?? "");
 
                     if (_currentDay != null) _days.Add(_currentDay);
@@ -96,7 +88,7 @@ public class XlsxConverter
                     _bathroomShift = null;
                     _bathroomShiftOrder = -1;
                     break;
-                case _CurrentSection.FoundEmployee:
+                case CurrentSection.FoundEmployee:
                     try
                     {
                         ParseEmployeeRow(row);
@@ -106,10 +98,12 @@ public class XlsxConverter
                         if (_currentDay != null)
                         {
                             string errorType = ex.GetType().Name;
-                            if (_currentDay.Errors.ContainsKey(errorType))
-                                _currentDay.Errors[errorType].Add("Error in row " + row);
+
+
+                            if (_currentDay.Errors.TryGetValue(errorType, out List<String>? errors))
+                                errors.Add("Error in row " + row);
                             else
-                                _currentDay.Errors.Add(errorType, new List<string> { "Error in row " + row });
+                                _currentDay.Errors.Add(errorType, new(["Error in row " + row]));
                         }
 
                     }
@@ -129,18 +123,18 @@ public class XlsxConverter
         return _days;
     }
 
-    private _CurrentSection IdentifyRow(int row, bool daysFound)
+    private CurrentSection IdentifyRow(int row, bool daysFound)
     {
-        if (_dayOfWeekRegex.IsMatch(_ws.Cells[row, 1].Value?.ToString() ?? ""))
-            return _CurrentSection.FoundNewDay;
-        else if (daysFound && _nameRegex.IsMatch(_ws.Cells[row, _nameColumn].Value?.ToString() ?? ""))
-            return _CurrentSection.FoundEmployee;
-        return _CurrentSection.FoundNothing;
+        if (IsDayOfWeek(_ws.Cells[row, 1].Value?.ToString() ?? ""))
+            return CurrentSection.FoundNewDay;
+        else if (daysFound && IsName(_ws.Cells[row, _nameColumn].Value?.ToString() ?? ""))
+            return CurrentSection.FoundEmployee;
+        return CurrentSection.FoundNothing;
     }
 
     private void ParseEmployeeRow(int row)
     {
-        if (_currentDay == null) throw new ArgumentNullException("currentDay should not be null");
+        if (_currentDay == null) throw new Exception("currentDay should not be null");
 
         var shifts = new List<ShiftData>();
         string firstName, lastName;
@@ -156,12 +150,12 @@ public class XlsxConverter
             .FirstOrDefault();
 
         // Creating new employee object for unregistered employees to use default values
-        if (employeePreferences == null)
-        {
-            employeePreferences = new Employee();
-            employeePreferences.FirstName = StringHelpers.GetProperCase(firstName);
-            employeePreferences.LastName = StringHelpers.GetProperCase(lastName);
-        }
+        
+         employeePreferences ??= new() {
+            FirstName = StringHelpers.GetProperCase(firstName),
+            LastName = StringHelpers.GetProperCase(lastName)
+        };
+        
         if (employeePreferences.PositionOverride == "DELETE")
             return;
 
@@ -185,11 +179,11 @@ public class XlsxConverter
         if (!_timeIndex.ContainsKey(jobEndColumn))
         {
             jobEndColumn--;
-            if (!_timeIndex.ContainsKey(jobEndColumn)) throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
+            if (!_timeIndex.ContainsKey(jobEndColumn)) throw new Exception(nameof(jobEndColumn));
         }
         DateTime wholeShiftEnd = _timeIndex[jobEndColumn];
 
-        List<JobKeyTracker> jobKeys = new();
+        List<JobKeyTracker> jobKeys = [];
         int firstJobKeyColumn = 0;
 
         // Finding beginning of shift and all splits 
@@ -204,9 +198,9 @@ public class XlsxConverter
                 // Getting first job key in row
                 if (jobKeys.Count < 1)
                 {
-                    if (currentKey != null && JobFinder.SubJobKeys.ContainsKey(currentKey))
+                    if (currentKey != null && JobFinder.SubJobKeys.TryGetValue(currentKey, out JobFinder.SubJobKeyDescription? subDescription))
                     {
-                        jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
+                        jobKeys.Add(new JobKeyTracker(subDescription.ParentKey, col, currentKey, col));
                     } else 
                     {
                         jobKeys.Add(new JobKeyTracker(currentKey, col));
@@ -218,14 +212,14 @@ public class XlsxConverter
                 else if (currentKey != null && !JobFinder.NonJobKeys.Contains(currentKey) && currentKey != jobKeys.Last().JobKey && currentKey != jobKeys.Last().SubJobKey)
                 {
                     // Subkey handler
-                    if (JobFinder.SubJobKeys.ContainsKey(currentKey)) 
+                    if (JobFinder.SubJobKeys.TryGetValue(currentKey, out JobFinder.SubJobKeyDescription? subDescription)) 
                     {
-                        if (JobFinder.SubJobKeys[currentKey].ParentKey == jobKeys.Last().JobKey)
+                        if (subDescription.ParentKey == jobKeys.Last().JobKey)
                         {
                             jobKeys.Last().SubJobKey = currentKey;
                             jobKeys.Last().SubJobStartColumn = col;
                         } else {
-                            jobKeys.Add(new JobKeyTracker(JobFinder.SubJobKeys[currentKey].ParentKey, col, currentKey, col));
+                            jobKeys.Add(new JobKeyTracker(subDescription.ParentKey, col, currentKey, col));
                         }
                     } else 
                     {
@@ -251,19 +245,18 @@ public class XlsxConverter
         // Throwing error if jobStartColumn was never found
         if (firstJobKeyColumn == 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(firstJobKeyColumn));
+            throw new Exception(nameof(firstJobKeyColumn));
         }
         // Throwing error when end is not found, end should always be greater
         if (jobEndColumn <= firstJobKeyColumn)
         {
-            throw new ArgumentOutOfRangeException(nameof(jobEndColumn));
+            throw new Exception(nameof(jobEndColumn));
         }
 
         DateTime wholeShiftStart = _timeIndex[firstJobKeyColumn];
 
         JobPosition startingJobPosition;
-        JobFinder.SubJobKeyDescription? trashValue = null; // Don't
-        if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride) && !JobFinder.SubJobKeys.TryGetValue(employeePreferences.PositionOverride, out trashValue))
+        if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride) && !JobFinder.SubJobKeys.TryGetValue(employeePreferences.PositionOverride, out JobFinder.SubJobKeyDescription? trashValue))
             startingJobPosition = FindJobPosition(employeePreferences.PositionOverride, 1);
         else
             startingJobPosition = FindJobPosition(jobKeys[0].JobKey, row);
@@ -271,14 +264,14 @@ public class XlsxConverter
         // Get split shifts here
         for (int i = 0; i < jobKeys.Count; i++)
         {
-            if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride) && !JobFinder.SubJobKeys.TryGetValue(employeePreferences.PositionOverride, out trashValue))
+            if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride) && !JobFinder.SubJobKeys.TryGetValue(employeePreferences.PositionOverride, out JobFinder.SubJobKeyDescription? trashValue2))
             {
                 shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition));
                 break;
             }
-            else if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride) && JobFinder.SubJobKeys.TryGetValue(employeePreferences.PositionOverride, out trashValue))
+            else if(!string.IsNullOrWhiteSpace(employeePreferences.PositionOverride) && JobFinder.SubJobKeys.TryGetValue(employeePreferences.PositionOverride, out JobFinder.SubJobKeyDescription? trashValue3))
             {
-                shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition, wholeShiftStart, wholeShiftEnd, trashValue.Title));
+                shifts.Add(new ShiftData(wholeShiftStart, wholeShiftEnd, startingJobPosition, wholeShiftStart, wholeShiftEnd, trashValue3.Title));
                 break;
             }
             if (i == 0)
@@ -322,6 +315,7 @@ public class XlsxConverter
         // Getting breaks for front end employees
         if (shifts.Any(shift => shift.Position.Name.Contains("Front")))
         {
+            bool isAdultBetter = !!employeePreferences.Birthday.HasValue;
             bool isAdult = employeePreferences.Birthday.HasValue ? (_currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
             (breakOne, lunch, breakTwo) = EmployeeHelpers.GetBreaks(
                 wholeShiftStart, wholeShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
