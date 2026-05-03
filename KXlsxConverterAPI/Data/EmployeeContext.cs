@@ -11,6 +11,6 @@ namespace KXlsxConverterAPI.Data
             Database.EnsureCreated();
         }
 
-        public DbSet<Employee> Employees { get; set; }
+        public required DbSet<Employee> Employees { get; set; }
     }
 }
