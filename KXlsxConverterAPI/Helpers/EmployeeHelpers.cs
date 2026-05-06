@@ -84,19 +84,19 @@ public class EmployeeHelpers
         Shift currentBagger;
         CartSlot currentSlot;
         // Dictionaries and first for loop trying to catch baggers with same first name, probably a bit much
-        Dictionary<string, int> indexKey = new();
-        Dictionary<int, string> nameKey = new();
+        Dictionary<string, int> indexKey = [];
+        Dictionary<int, string> nameKey = [];
         int bathroomBaggerIndex = -1;
         for (int i = 0; i < Baggers.Shifts.Count; i++)
         {
             if (bathroomBaggerIndex < 0 && bathroomBagger != null && Baggers.Shifts[i].FirstName == bathroomBagger.FirstName && Baggers.Shifts[i].LastName == bathroomBagger.LastName)
                 bathroomBaggerIndex = i;
-            if (indexKey.ContainsKey(Baggers.Shifts[i].FirstName))
+            
+            var currentBaggerShift = Baggers.Shifts[i];
+            if (indexKey.TryGetValue(currentBaggerShift.FirstName, out int existingNameIndex))
             {
-                int existingNameIndex = indexKey[Baggers.Shifts[i].FirstName];
-
-                string thisBaggerName = Baggers.Shifts[i].FirstName + " " + Baggers.Shifts[i].LastName.Substring(0, 1);
-                string otherBaggerName = nameKey[existingNameIndex] + " " + Baggers.Shifts[existingNameIndex].LastName.Substring(0, 1);
+                string thisBaggerName = string.Concat(currentBaggerShift.FirstName, " ", currentBaggerShift.LastName.AsSpan(0, 1));
+                string otherBaggerName = string.Concat(nameKey[existingNameIndex], " ", Baggers.Shifts[existingNameIndex].LastName.AsSpan(0, 1));
 
                 Baggers.Shifts[i].BaggerName = thisBaggerName;
                 Baggers.Shifts[existingNameIndex].BaggerName = otherBaggerName;
