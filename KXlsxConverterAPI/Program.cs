@@ -8,6 +8,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddConsole();
+    builder.AddDebug();
+});
+
+ILogger logger = loggerFactory.CreateLogger<Program>();
+
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
@@ -15,6 +23,7 @@ string? dbConnection = builder.Configuration["POSTGRESQLCONNSTR_DatabaseConnecti
 if (string.IsNullOrEmpty(dbConnection)) {
     dbConnection = builder.Configuration.GetConnectionString("POSTGRESQLCONNSTR_DatabaseConnectionString");
 }
+logger.LogInformation("dbConnection: " + dbConnection);
 
 if (string.IsNullOrEmpty(dbConnection))
 {
