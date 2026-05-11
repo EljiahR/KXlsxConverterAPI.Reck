@@ -12,6 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
 string? dbConnection = builder.Configuration["POSTGRESQLCONNSTR_DatabaseConnectionString"];
+if (string.IsNullOrEmpty(dbConnection)) {
+    dbConnection = builder.Configuration.GetConnectionString("POSTGRESQLCONNSTR_DatabaseConnectionString");
+}
+
 if (string.IsNullOrEmpty(dbConnection))
 {
     services.AddDbContext<EmployeeContext>(options =>
