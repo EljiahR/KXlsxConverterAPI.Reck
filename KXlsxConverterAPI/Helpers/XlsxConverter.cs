@@ -330,7 +330,7 @@ public class XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet 
             Subshift? subShift = null;
             if (!string.IsNullOrWhiteSpace(shift.SubJobName)) 
             {
-                subShift = new() { ShiftStart = shift.SubStart!.Value, ShiftEnd = shift.SubEnd!.Value, OriginalPosition = shift.SubJobName };
+                subShift = new() { ShiftStart = shift.SubStart!.Value, ShiftEnd = shift.SubEnd!.Value, OriginalPosition = !string.IsNullOrWhiteSpace(employeePreferences.OriginalPositionOverride) ? employeePreferences.OriginalPositionOverride : shift.SubJobName };
             }
 
             // Actual shift processing done here
@@ -395,7 +395,7 @@ public class XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet 
             BreakOne = breakOne,
             Lunch = lunch,
             BreakTwo = breakTwo,
-            OriginalPosition = !String.IsNullOrWhiteSpace(originalPositionOverride) ? originalPositionOverride : jobColumnValue,
+            OriginalPosition = !string.IsNullOrWhiteSpace(originalPositionOverride) ? originalPositionOverride : jobColumnValue,
             Subshift = subShift
         };
 
