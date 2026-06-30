@@ -162,6 +162,6 @@ public class EmployeeHelpers
 
     private static bool TimeIsInBetween(DateTime start, DateTime end, DateTime timeToCheck, bool isShortShift)
     {
-        return timeToCheck.TimeOfDay >= start.TimeOfDay && end.AddHours(isShortShift ? 0.25 : -0.5).TimeOfDay >= timeToCheck.TimeOfDay;
+        return timeToCheck.TimeOfDay >= start.TimeOfDay && end.AddHours(isShortShift ? -0.25 : -0.5).TimeOfDay >= timeToCheck.TimeOfDay;
     } 
 }
