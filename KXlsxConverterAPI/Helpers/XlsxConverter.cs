@@ -58,7 +58,11 @@ public class XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet 
                     else if (_currentDay != null)
                     {
                         var baggerShifts = _currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
-                        if (baggerShifts != null) EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift);
+                        if (baggerShifts != null) 
+                        {
+                            EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift, false);
+                            EmployeeHelpers.FillCarts(_currentDay.Carts15, baggerShifts, _bathroomShift, true);
+                        }
                     }
                     
                      
@@ -116,7 +120,12 @@ public class XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet 
         if (_currentDay != null)
         {
             var baggerShifts = _currentDay.JobPositions.Where(x => x.Name == "Front End Courtesy Clerk").FirstOrDefault();
-            if (baggerShifts != null) EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift);
+            if (baggerShifts != null)
+            {
+                EmployeeHelpers.FillCarts(_currentDay.Carts, baggerShifts, _bathroomShift, false);
+                EmployeeHelpers.FillCarts(_currentDay.Carts15, baggerShifts, _bathroomShift, true);
+            } 
+                
             _days.Add(_currentDay);
         }
         SortAllShifts();

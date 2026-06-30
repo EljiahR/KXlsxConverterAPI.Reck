@@ -79,7 +79,7 @@ public class EmployeeHelpers
         return (break1, lunch, break2);
     }
 
-    public static void FillCarts(CartSlot[] Carts, JobPosition Baggers, Shift? bathroomBagger)
+    public static void FillCarts(CartSlot[] Carts, JobPosition Baggers, Shift? bathroomBagger, bool isShortShifts)
     {
         Shift currentBagger;
         CartSlot currentSlot;
@@ -122,10 +122,10 @@ public class EmployeeHelpers
                 currentSlot = Carts[timeSlot];
                 // I know that this is a lot for one if statement but none of these are mutually exclusive
                 if (currentSlot.Baggers.Contains(null) && (timeSlot == 0 || !Carts[timeSlot - 1].Baggers.Contains(nameKey[baggerIndex]))
-                    && TimeIsInBetween(currentBagger.ShiftStart, currentBagger.ShiftEnd, currentSlot.Time)
-                    && (currentBagger.BreakOne == null || TimesOverlap(currentBagger.BreakOne.Value, currentSlot.Time))
-                    && (currentBagger.Lunch == null || TimesOverlap(currentBagger.Lunch.Value, currentSlot.Time))
-                    && (currentBagger.BreakTwo == null || TimesOverlap(currentBagger.BreakTwo.Value, currentSlot.Time)
+                    && TimeIsInBetween(currentBagger.ShiftStart, currentBagger.ShiftEnd, currentSlot.Time, isShortShifts)
+                    && (currentBagger.BreakOne == null || TimesOverlap(currentBagger.BreakOne.Value, currentSlot.Time, isShortShifts))
+                    && (currentBagger.Lunch == null || TimesOverlap(currentBagger.Lunch.Value, currentSlot.Time, isShortShifts))
+                    && (currentBagger.BreakTwo == null || TimesOverlap(currentBagger.BreakTwo.Value, currentSlot.Time, isShortShifts)
                     /*&& (currentBagger.Subshift == null || !TimeIsInBetween(currentBagger.Subshift.ShiftStart, currentBagger.Subshift.ShiftEnd, currentSlot.Time))*/)
                     )
                 {
@@ -138,27 +138,30 @@ public class EmployeeHelpers
 
     }
 
-    private static bool TimesOverlap(DateTime breakTime, DateTime cartTime, bool isLunch = false)
+    private static bool TimesOverlap(DateTime breakTime, DateTime cartTime, bool isShortShift, bool isLunch = false)
     {
         TimeSpan timeDifference;
+        var overLap = isShortShift ? 0.25 : 0.5;
+        var overLapShort = isShortShift ? 0 : 0.25;
+        
         if (breakTime.TimeOfDay > cartTime.TimeOfDay)
         {
             timeDifference = breakTime.TimeOfDay - cartTime.TimeOfDay;
-            return timeDifference.TotalHours >= 0.5;
+            return timeDifference.TotalHours >= overLap;
         }
         else
         {
             timeDifference = cartTime.TimeOfDay - breakTime.TimeOfDay;
             if(isLunch)
-                return timeDifference.TotalHours >= 0.5;
+                return timeDifference.TotalHours >= overLap;
 
-            return timeDifference.TotalHours >= 0.25;
+            return timeDifference.TotalHours >= overLap - overLapShort;
         }
         
     }
 
-    private static bool TimeIsInBetween(DateTime start, DateTime end, DateTime timeToCheck)
+    private static bool TimeIsInBetween(DateTime start, DateTime end, DateTime timeToCheck, bool isShortShift)
     {
-        return timeToCheck.TimeOfDay >= start.TimeOfDay && end.AddHours(-0.5).TimeOfDay >= timeToCheck.TimeOfDay;
+        return timeToCheck.TimeOfDay >= start.TimeOfDay && end.AddHours(isShortShift ? 0.25 : -0.5).TimeOfDay >= timeToCheck.TimeOfDay;
     } 
 }
