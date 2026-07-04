@@ -41,7 +41,7 @@ services.AddCors(options =>
 {
     options.AddPolicy("AllowFront", policy =>
     {
-        policy.WithOrigins("https://15minutechart.netlify.app")  
+        policy.WithOrigins("https://15minutechart.netlify.app", "https://web.ereck.net")  
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
