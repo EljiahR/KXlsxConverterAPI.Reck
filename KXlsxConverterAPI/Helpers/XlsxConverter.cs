@@ -324,8 +324,7 @@ public class XlsxConverter(IEnumerable<Employee> storeEmployees, ExcelWorksheet 
         // Getting breaks for front end employees
         if (shifts.Any(shift => shift.Position.Name.Contains("Front")))
         {
-            bool isAdultBetter = !!employeePreferences.Birthday.HasValue;
-            bool isAdult = employeePreferences.Birthday.HasValue ? (_currentDay.Date - employeePreferences.Birthday.GetValueOrDefault()).TotalDays >= 6570 : true;
+            bool isAdult = employeePreferences.IsAdult;
             (breakOne, lunch, breakTwo) = EmployeeHelpers.GetBreaks(
                 wholeShiftStart, wholeShiftEnd, employeePreferences.PreferredNumberOfBreaks, !isAdult || employeePreferences.GetsLunchAsAdult); // This is so ugly im so sorry
         }

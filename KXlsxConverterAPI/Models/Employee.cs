@@ -27,4 +27,5 @@ public class Employee
     public int Division { get; set; } = 0;
     public int StoreNumber { get; set; } = 0;
     public string? PreferredLastName { get; set; } = null;
+    public bool IsAdult { get; set; } = true;
 }
