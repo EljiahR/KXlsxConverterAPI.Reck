@@ -72,6 +72,8 @@ public class EmployeeHelpers
             // Only shifts left should be getting exactly one 15 minute break
             if (shiftLength.TotalHours == 4.25 || shiftLength.TotalHours == 4.75)
                 break1 = endTime.AddHours(-2);
+            else if (shiftLength.TotalHours == 5.25 || shiftLength.TotalHours == 5.75)
+                break1 = startTime.AddHours(2.5);
             else
                 break1 = startTime.AddHours(shiftLength.TotalHours / 2);
         }
